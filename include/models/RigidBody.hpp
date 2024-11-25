@@ -1,5 +1,5 @@
-#ifndef RIGID_BODY.H
-#define RIGID_BODY.H
+#ifndef RIGID_BODY_H
+#define RIGID_BODY_H
 
 #include <math.h>
 #include <vector>

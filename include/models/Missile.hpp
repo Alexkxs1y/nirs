@@ -1,5 +1,5 @@
-#ifndef MISSILE.H
-#define MISSILE.H
+#ifndef MISSILE_H
+#define MISSILE_H
 
 class Missile{
 
