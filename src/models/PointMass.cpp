@@ -25,12 +25,12 @@ bool PointMass::init(double _m, vector<double> _stateVector){
 
 bool PointMass::STEP(double dt){
     if(dt <= 0){
-        cout << "Ошибка при совершении шага. Отрицательное dt\n";
+        cout << "Ошибка при совершении шага мат точки. Отрицательное dt\n";
         return false; 
     }
 
     if(!forcesUpToDate){
-        cout << "Ошибка при совершении шага. Силы не были обновлены\n";
+        cout << "Ошибка при совершении шага мат точки. Силы не были обновлены\n";
         return false;
     }
 
@@ -91,6 +91,14 @@ double PointMass::get_Vy(){
 
 double PointMass::get_Vz(){
     return stateVector[5];
+}
+
+double PointMass::get_Vabs(){
+    return sqrt(get_Vx() * get_Vx() + get_Vy() * get_Vy() + get_Vz() * get_Vz());
+}
+
+double PointMass::get_rabs(){
+    return sqrt( get_x() * get_x() + get_y() * get_y() + get_z() * get_z());
 }
 
 vector<double> PointMass::get_r(){
