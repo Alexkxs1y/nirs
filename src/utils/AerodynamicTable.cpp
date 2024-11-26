@@ -45,7 +45,7 @@ bool DataTable::loadFromFile(const string& filename) {
     return !(M_list.empty() || alpha_list.empty() || values.empty());
 }
 
-double DataTable::interpolate(double M, double alpha) {
+double DataTable::interpolate(double M, double alpha) const {
     
     if (M >= M_list.back()) {
         M = M_list.back();

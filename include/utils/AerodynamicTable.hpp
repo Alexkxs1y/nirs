@@ -14,7 +14,7 @@ public:
     
     bool loadFromFile(const std::string& filename); //Превращение .txt в таблицу
 
-    double interpolate(double mach, double alpha); //Интерполяция
+    double interpolate(double mach, double alpha) const; //Интерполяция
 };
 
 #endif // DATA_TABLE_H
