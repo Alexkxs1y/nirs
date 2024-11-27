@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#define _USE_MATH_DEFINES
 
 using namespace std; 
 
@@ -50,6 +51,9 @@ bool MissileAerodynamic::init(  const string& Cx_a_filename, const string& Cx_do
         cout << "Ошибка при чтении файла Mz_wz\n";
         return false;
     };
+
+    rad2deg = 180.0 / M_PI;
+    return true;
 }
 
 double MissileAerodynamic::get_cx(double M, vector<double> &alpha_beta) const {

@@ -6,7 +6,7 @@
 
 class IAerodynamic{
     public:
-        virtual ~IAerodynamic();
+        virtual ~IAerodynamic() = default ;
         virtual double get_cx(double M, std::vector<double> & alpha_beta) const = 0;
         virtual double get_cy(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas) const = 0;
         virtual double get_cz(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas) const = 0;
