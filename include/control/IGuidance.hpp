@@ -5,10 +5,10 @@
 #include <vector>
 #include "../models/PointMass.hpp"
 
-class GuidanceSystem{
+class IGuidance{
     public:
-        virtual ~GuidanceSystem() = default ;
-        virtual std::vector<double> get_GuidanceSignal(PointMass* missile, PointMass* target) const = 0;
+        virtual ~IGuidance() = default ;
+        virtual std::vector<double> get_GuidanceSignal(PointMass* missile, PointMass* target) = 0;
 };
 
 

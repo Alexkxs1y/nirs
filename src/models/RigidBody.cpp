@@ -123,7 +123,7 @@ double RigidBody::get_wz() const{
 }
 
 double RigidBody::get_alpha() const{
-    return atan(this->get_Vy() / this->get_Vx());
+    return -atan(this->get_Vy() / this->get_Vx());
 }
 
 double RigidBody::get_beta() const{
