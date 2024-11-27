@@ -82,55 +82,55 @@ bool RigidBody::set_torques(vector<double> _torques){
     return true;
 }
 
-vector<double> RigidBody::get_J(){
+vector<double> RigidBody::get_J() const{
     return J;
 }
 
-double RigidBody::get_yaw(){
+double RigidBody::get_yaw() const{
     return orientationVector[1];
 }
 
-double RigidBody::get_pitch(){
+double RigidBody::get_pitch() const{
     return orientationVector[2];
 }
 
-double RigidBody::get_roll(){
+double RigidBody::get_roll() const{
     return orientationVector[0];
 }
 
-double RigidBody::get_dyaw_dt(){
+double RigidBody::get_dyaw_dt() const{
     return dyaw_dt();
 }
 
-double RigidBody::get_dpitch_dt(){
+double RigidBody::get_dpitch_dt() const{
     return dpitch_dt();
 }
 
-double RigidBody::get_droll_dt(){
+double RigidBody::get_droll_dt() const{
     return droll_dt();
 }
 
-double RigidBody::get_wx(){
+double RigidBody::get_wx() const{
     return orientationVector[3];
 }
 
-double RigidBody::get_wy(){
+double RigidBody::get_wy() const{
     return orientationVector[4];
 }
 
-double RigidBody::get_wz(){
+double RigidBody::get_wz() const{
     return orientationVector[5];
 }
 
-double RigidBody::get_alpha(){
+double RigidBody::get_alpha() const{
     return atan(this->get_Vy() / this->get_Vx());
 }
 
-double RigidBody::get_beta(){
+double RigidBody::get_beta() const{
     return atan(this->get_Vz() / this->get_Vabs());
 }
 
-vector<double> RigidBody::get_ypr(){
+vector<double> RigidBody::get_ypr() const{
     vector<double> _ypr(3);
     _ypr[0] = orientationVector[1];
     _ypr[1] = orientationVector[2];
@@ -138,7 +138,7 @@ vector<double> RigidBody::get_ypr(){
     return _ypr;
 }
 
-vector<double> RigidBody::get_dypr_dt(){
+vector<double> RigidBody::get_dypr_dt() const{
     vector<double> _d_ypr_dt(3);
     _d_ypr_dt[0] = dyaw_dt();
     _d_ypr_dt[1] = dpitch_dt();
@@ -146,14 +146,14 @@ vector<double> RigidBody::get_dypr_dt(){
     return _d_ypr_dt;
 }
 
-vector<double> RigidBody::get_alpha_beta(){
+vector<double> RigidBody::get_alpha_beta() const{
     vector<double> _alpha_beta(2);
     _alpha_beta[0] = get_alpha();
     _alpha_beta[1] = get_beta();
     return _alpha_beta;
 }
 
-vector<double> RigidBody::get_w(){
+vector<double> RigidBody::get_w() const{
     vector<double> _w(3);
     for(int i = 0; i < _w.size(); i++){
         _w[i] = orientationVector[3 + i];
@@ -161,27 +161,27 @@ vector<double> RigidBody::get_w(){
     return _w;
 }
 
-double RigidBody::droll_dt(){
+double RigidBody::droll_dt() const{
     return orientationVector[3] - (tan(orientationVector[2]) * (orientationVector[4] * cos(orientationVector[0]) - orientationVector[5] * sin(orientationVector[0])));
 
 }
 
-double RigidBody::dyaw_dt(){
+double RigidBody::dyaw_dt() const{
     return ((1 / cos(orientationVector[2])) * (orientationVector[4] * cos(orientationVector[0]) - orientationVector[5] * sin(orientationVector[0])));
 }
 
-double RigidBody::dpitch_dt(){
+double RigidBody::dpitch_dt() const{
     return orientationVector[4] * sin(orientationVector[0]) + orientationVector[5] * cos(orientationVector[0]);
 }
 
-double RigidBody::dwx_dt(){
+double RigidBody::dwx_dt() const{
     return torques[0] / J[0] - (J[2] - J[1]) / J[0] * orientationVector[4] * orientationVector[5];
 }
 
-double RigidBody::dwy_dt(){
+double RigidBody::dwy_dt() const{
     return torques[1] / J[1] - (J[0] - J[2]) / J[1] * orientationVector[3] * orientationVector[5];
 }
 
-double RigidBody::dwz_dt(){
+double RigidBody::dwz_dt() const{
     return torques[2] / J[2] - (J[1] - J[0]) / J[2] * orientationVector[3] * orientationVector[4];
 }

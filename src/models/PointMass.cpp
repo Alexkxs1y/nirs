@@ -65,43 +65,43 @@ bool PointMass::set_forces(vector<double> _forces){
     return true;
 }
 
-double PointMass::get_m(){
+double PointMass::get_m() const{
     return m;
 }
 
-double PointMass::get_x(){
+double PointMass::get_x() const{
     return stateVector[0];
 }
 
-double PointMass::get_y(){
+double PointMass::get_y() const{
     return stateVector[1];
 }
 
-double PointMass::get_z(){
+double PointMass::get_z() const{
     return stateVector[2];
 }
 
-double PointMass::get_Vx(){
+double PointMass::get_Vx() const{
     return stateVector[3];
 }
 
-double PointMass::get_Vy(){
+double PointMass::get_Vy() const{
     return stateVector[4];
 }
 
-double PointMass::get_Vz(){
+double PointMass::get_Vz() const{
     return stateVector[5];
 }
 
-double PointMass::get_Vabs(){
+double PointMass::get_Vabs() const{
     return sqrt(get_Vx() * get_Vx() + get_Vy() * get_Vy() + get_Vz() * get_Vz());
 }
 
-double PointMass::get_rabs(){
+double PointMass::get_rabs() const{
     return sqrt( get_x() * get_x() + get_y() * get_y() + get_z() * get_z());
 }
 
-vector<double> PointMass::get_r(){
+vector<double> PointMass::get_r() const{
     vector<double> _r(3);
     for(int i = 0; i < _r.size(); i++){
         _r[i] = stateVector[i];
@@ -109,7 +109,7 @@ vector<double> PointMass::get_r(){
     return _r;
 }
 
-vector<double> PointMass::get_V(){
+vector<double> PointMass::get_V() const{
     vector<double> _V(3);
     for(int i = 0; i < _V.size(); i++){
         _V[i] = stateVector[3+i];
@@ -117,30 +117,30 @@ vector<double> PointMass::get_V(){
     return _V;
 }
 
-vector<double> PointMass::get_forces(){
+vector<double> PointMass::get_forces() const{
     return forces;
 }
 
-double PointMass::dx_dt(){
+double PointMass::dx_dt() const{
     return stateVector[3];
 }
 
-double PointMass::dy_dt(){
+double PointMass::dy_dt() const{
     return stateVector[4];
 }
 
-double PointMass::dz_dt(){
+double PointMass::dz_dt() const{
     return stateVector[5];
 }
 
-double PointMass::dVx_dt(){
+double PointMass::dVx_dt() const{
     return forces[0] / m;
 }
 
-double PointMass::dVy_dt(){
+double PointMass::dVy_dt() const{
     return forces[1] / m;
 }
 
-double PointMass::dVz_dt(){
+double PointMass::dVz_dt() const{
     return forces[2] / m;
 }

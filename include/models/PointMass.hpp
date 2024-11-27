@@ -18,19 +18,19 @@ class PointMass{
         bool set_forces(std::vector<double> _forces); //Установка текущих сил, действующих на центр масс
 
         
-        double get_m(); //Вернуть значение массы
-        double get_x(); //Вернуть значение координаты х
-        double get_y(); //Вернуть значение координаты y
-        double get_z(); //Вернуть значение координаты z
-        double get_Vx(); //Вернуть значение скорости Vx
-        double get_Vy(); //Вернуть значение скорости Vy
-        double get_Vz(); //Вернуть значение скорости Vz
-        double get_Vabs(); //Вернуть значение модуля скорости
-        double get_rabs(); //Вернуть значение модуля радиус-вектора
+        double get_m() const; //Вернуть значение массы
+        double get_x() const; //Вернуть значение координаты х
+        double get_y() const; //Вернуть значение координаты y
+        double get_z() const; //Вернуть значение координаты z
+        double get_Vx() const; //Вернуть значение скорости Vx
+        double get_Vy() const; //Вернуть значение скорости Vy
+        double get_Vz() const; //Вернуть значение скорости Vz
+        double get_Vabs() const; //Вернуть значение модуля скорости
+        double get_rabs() const; //Вернуть значение модуля радиус-вектора
 
-        std::vector<double> get_r(); //Вернуть значение радиус-вектора
-        std::vector<double> get_V(); //Вернуть значение вектора скорости
-        std::vector<double> get_forces(); //Вернуть значение сил
+        std::vector<double> get_r() const; //Вернуть значение радиус-вектора
+        std::vector<double> get_V() const; //Вернуть значение вектора скорости
+        std::vector<double> get_forces() const; //Вернуть значение сил
 
     protected:
 
@@ -39,12 +39,12 @@ class PointMass{
         double m; //Масса
         bool forcesUpToDate; //Флаг на проверку того, что после вызова шага были обновлены силы
 
-        double dx_dt(); //Производная х
-        double dy_dt(); //Производная y 
-        double dz_dt(); //Производная z
-        double dVx_dt(); //Производная Vx
-        double dVy_dt(); //Производная Vy
-        double dVz_dt(); //Производная Vz
+        double dx_dt() const; //Производная х
+        double dy_dt() const; //Производная y 
+        double dz_dt() const; //Производная z
+        double dVx_dt() const; //Производная Vx
+        double dVy_dt() const; //Производная Vy
+        double dVz_dt() const; //Производная Vz
         //double dm_dt();
 };
 

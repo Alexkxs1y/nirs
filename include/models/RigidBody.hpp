@@ -18,23 +18,23 @@ class RigidBody: public PointMass{
         bool set_torques(std::vector<double> _torques); //Установка вектора моментов
 
        
-        std::vector<double> get_J(); //Вернуть значение вектора моментов инерции (Jx, Jy, Jz)
-        double get_yaw(); //Вернуть значение рысканья
-        double get_pitch(); //Вернуть значение тангажа
-        double get_roll(); //Вернуть значение крена
-        double get_dyaw_dt(); //Вернуть значение производной рысканья
-        double get_dpitch_dt(); //Вернуть значение производной тангажа
-        double get_droll_dt(); //Вернуть значение производной крена
-        double get_wx(); //Вернуть значение угловой скорости относительно связной оси Ох
-        double get_wy(); //Вернуть значение угловой скорости относительно связной оси Оy
-        double get_wz(); //Вернуть значение угловой скорости относительно связной оси Оz
-        double get_alpha(); //Вернуть значение угла атаки
-        double get_beta(); //Вернуть значение угла скольжения
+        std::vector<double> get_J() const; //Вернуть значение вектора моментов инерции (Jx, Jy, Jz)
+        double get_yaw() const; //Вернуть значение рысканья
+        double get_pitch() const; //Вернуть значение тангажа
+        double get_roll() const; //Вернуть значение крена
+        double get_dyaw_dt() const; //Вернуть значение производной рысканья
+        double get_dpitch_dt() const; //Вернуть значение производной тангажа
+        double get_droll_dt() const; //Вернуть значение производной крена
+        double get_wx() const; //Вернуть значение угловой скорости относительно связной оси Ох
+        double get_wy() const; //Вернуть значение угловой скорости относительно связной оси Оy
+        double get_wz() const; //Вернуть значение угловой скорости относительно связной оси Оz
+        double get_alpha() const; //Вернуть значение угла атаки
+        double get_beta() const; //Вернуть значение угла скольжения
 
-        std::vector<double> get_ypr(); //Вернуть значение вектора (yaw, pitch, roll)
-        std::vector<double> get_dypr_dt(); //Вернуть значение вектора (dyaw_dt, dpitch_dt, droll_dt)
-        std::vector<double> get_alpha_beta(); //Вернуть значение вектора (alpha, beta)
-        std::vector<double> get_w(); //Вернуть значение вектора угловых скоростей w = (wx, wy, wz)
+        std::vector<double> get_ypr() const; //Вернуть значение вектора (yaw, pitch, roll)
+        std::vector<double> get_dypr_dt() const; //Вернуть значение вектора (dyaw_dt, dpitch_dt, droll_dt)
+        std::vector<double> get_alpha_beta() const; //Вернуть значение вектора (alpha, beta)
+        std::vector<double> get_w() const; //Вернуть значение вектора угловых скоростей w = (wx, wy, wz)
 
     protected:
 
@@ -43,12 +43,12 @@ class RigidBody: public PointMass{
         std::vector<double> torques; // Вектор моментов M = (Mx, My, Mz)
         bool torquesUpToDate;  
 
-        double droll_dt(); //Производная крена
-        double dyaw_dt(); //Производная рысканья
-        double dpitch_dt(); //Производная тангажа
-        double dwx_dt(); //Производная угловой скорости относительно связной оси Ох
-        double dwy_dt(); //Производная угловой скорости относительно связной оси Оy
-        double dwz_dt(); //Производная угловой скорости относительно связной оси Оz
+        double droll_dt() const; //Производная крена
+        double dyaw_dt() const; //Производная рысканья
+        double dpitch_dt() const; //Производная тангажа
+        double dwx_dt() const; //Производная угловой скорости относительно связной оси Ох
+        double dwy_dt() const; //Производная угловой скорости относительно связной оси Оy
+        double dwz_dt() const; //Производная угловой скорости относительно связной оси Оz
 
 };
 
