@@ -9,7 +9,7 @@ using namespace std;
 RigidBody::RigidBody(): orientationVector(vector<double>(6)), J(vector<double>(3)), torques(vector<double>(3)), torquesUpToDate(false){}
 
 
-bool RigidBody::init(double _m, std::vector<double> _stateVector, std::vector<double> _J, std::vector<double> _roll_yaw_pitch, std::vector<double> _w){
+bool RigidBody::init(double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w){
     if(!PointMass::init(_m, _stateVector)){
         cout << "Ошибка произошла при инициализации тверого тела \n";
         return false;
@@ -63,7 +63,7 @@ bool RigidBody::STEP(double dt){
 
 RigidBody::~RigidBody(){}
 
-bool RigidBody::set_torques(vector<double> _torques){
+bool RigidBody::set_torques(vector<double>& _torques){
     if(_torques.size() != torques.size()){
         cout << "Ошибка при установке новых моментов. Размер нового вектора моментов не равен старому \n";
         return false;

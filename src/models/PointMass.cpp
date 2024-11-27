@@ -11,7 +11,7 @@ PointMass::PointMass(): stateVector(vector<double>(6)), forces(vector<double>(3)
 
 PointMass::~PointMass(){}
 
-bool PointMass::init(double _m, vector<double> _stateVector){
+bool PointMass::init(double _m, vector<double>& _stateVector){
     if(_stateVector.size() != stateVector.size()){
         cout << "Ошибка при инициализации вектора состояния. Размер задаваемого вектора состояния неправильный\n";
         return false;
@@ -46,7 +46,7 @@ bool PointMass::STEP(double dt){
     return true;
 }
 
-bool PointMass::set_forces(vector<double> _forces){
+bool PointMass::set_forces(vector<double>& _forces){
     if(_forces.size() != forces.size()){
         cout << "Ошибка при установке новых сил. Размер нового вектора сил не равен старому \n";
         return false;

@@ -9,13 +9,13 @@ class PointMass{
     public:
         PointMass();
 
-        bool init(double _m, std::vector<double> _stateVector);
+        bool init(double _m, std::vector<double>& _stateVector);
 
         virtual bool STEP(double dt); //Функция шага по времени 
 
         virtual ~PointMass();   
 
-        bool set_forces(std::vector<double> _forces); //Установка текущих сил, действующих на центр масс
+        bool set_forces(std::vector<double>& _forces); //Установка текущих сил, действующих на центр масс
 
         
         double get_m() const; //Вернуть значение массы

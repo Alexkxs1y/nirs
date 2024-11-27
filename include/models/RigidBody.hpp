@@ -9,13 +9,13 @@ class RigidBody: public PointMass{
     public:
         RigidBody();
 
-        bool init(double _m, std::vector<double> _stateVector, std::vector<double> _J, std::vector<double> _roll_yaw_pitch, std::vector<double> _w);
+        bool init(double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w);
 
         bool STEP(double dt) override; //Шаг по вревемин для твердого тела
 
         ~RigidBody();
 
-        bool set_torques(std::vector<double> _torques); //Установка вектора моментов
+        bool set_torques(std::vector<double>& _torques); //Установка вектора моментов
 
        
         std::vector<double> get_J() const; //Вернуть значение вектора моментов инерции (Jx, Jy, Jz)
