@@ -35,7 +35,7 @@ bool MissileGuidance::init(vector<double>& _K_guidance){
 }
 
 bool MissileGuidance::updateInformation(PointMass* missile, PointMass* target){
-    if(missile == 0 || target == 0){
+    if(target == 0){
         return false;
     }
     r_rel = sqrt(   (target->get_x() - missile->get_x()) * (target->get_x() - missile->get_x()) + 
