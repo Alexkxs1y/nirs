@@ -32,6 +32,7 @@ class MissileAerodynamic: public IAerodynamic{
         DataTable Mx_wx_dat;
         DataTable Mx_delta_dat;
         double rad2deg;
+        bool isInit;
 };
 
 #endif

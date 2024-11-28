@@ -123,11 +123,13 @@ double RigidBody::get_wz() const{
 }
 
 double RigidBody::get_alpha() const{
-    return -atan(this->get_Vy() / this->get_Vx());
+    vector<double> alpha_beta = get_alpha_beta();
+    return alpha_beta[0];
 }
 
 double RigidBody::get_beta() const{
-    return atan(this->get_Vz() / this->get_Vabs());
+    vector<double> alpha_beta = get_alpha_beta();
+    return alpha_beta[1];
 }
 
 vector<double> RigidBody::get_ypr() const{
@@ -148,8 +150,41 @@ vector<double> RigidBody::get_dypr_dt() const{
 
 vector<double> RigidBody::get_alpha_beta() const{
     vector<double> _alpha_beta(2);
-    _alpha_beta[0] = get_alpha();
-    _alpha_beta[1] = get_beta();
+
+    vector<double> ypr = get_ypr();
+    vector<double> sin_ypr(3);
+    vector<double> cos_ypr(3);
+    for(int i = 0; i < ypr.size(); i++){
+        sin_ypr[i] = sin(ypr[i]);
+        cos_ypr[i] = cos(ypr[i]);
+    }
+    
+    //Матрица перехода между НЗСК и СвСК
+    vector<vector<double>> A(3, vector<double>(3));
+
+    A[0] = {    cos_ypr[0] * cos_ypr[1], 
+                sin_ypr[1],
+              - sin_ypr[0] * cos_ypr[1] 
+            };
+
+    A[1] = {    sin_ypr[0] * sin_ypr[2] - cos_ypr[0] * sin_ypr[1] * cos_ypr[2],
+                cos_ypr[1] * cos_ypr[2],
+                cos_ypr[0] * sin_ypr[2] - sin_ypr[0] * sin_ypr[1] * cos_ypr[2]
+            };
+
+    A[2] = {    sin_ypr[0] * cos_ypr[2] - cos_ypr[0] * sin_ypr[1] * sin_ypr[2],
+              - cos_ypr[1] * sin_ypr[2],
+                cos_ypr[0] * cos_ypr[2] - sin_ypr[0] * sin_ypr[1] * sin_ypr[2]
+            };
+    vector<double> V_body = {0, 0, 0};
+    vector<double> V = get_V();
+    for(int i = 0; i < V_body.size(); i++){
+        for(int j = 0; j < V.size(); j++){
+            V_body[i] += V[j] * A[i][j];
+        }
+    }
+    _alpha_beta[0] = - atan(V_body[1] / V_body[0]);
+    _alpha_beta[1] = asin(V_body[2] / get_Vabs());
     return _alpha_beta;
 }
 

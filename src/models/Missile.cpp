@@ -27,7 +27,8 @@ bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J,
     missileGuidance = _missileGuidance;
     target = _target;
     l = _l;
-    d = _d;bool set_target();bool set_target();
+    d = _d;
+    return true;
 }
 
 bool Missile::set_controlParams(){
@@ -64,6 +65,7 @@ bool Missile::STEP(double dt){
         cout << "Ошибка возникла при совершении шага ракеты\n";
         return false;
     }
+    deltaUpToDate = false;
     return true;
 }
 
@@ -71,12 +73,12 @@ vector<double> Missile::calc_bodyRelatedAeroForce(){
     double h = get_y();
     double V = get_Vabs();
     double M = V / Atmosphere_GOST_4401_81<double>::SoundSpeed(h);
-    double q = Atmosphere_GOST_4401_81<double>::SoundSpeed(h) * V * V * 0.5;
+    double q = Atmosphere_GOST_4401_81<double>::Density(h) * V * V * 0.5;
     double Sm = M_PI * d * d * 0.25;
     vector<double> alpha_beta = get_alpha_beta();
 
     vector<double> aeroForces(3);
-    aeroForces[0] = missileAerodynamic->get_cx(M, alpha_beta) * q * Sm;
+    aeroForces[0] = - missileAerodynamic->get_cx(M, alpha_beta) * q * Sm;
     aeroForces[1] = missileAerodynamic->get_cy(M, alpha_beta, deltas) * q * Sm;
     aeroForces[2] = missileAerodynamic->get_cz(M, alpha_beta, deltas) * q * Sm;
 
@@ -116,13 +118,13 @@ bool Missile::calc_forces(){
     
     //Перевод АД сил из СвСК в НЗСК
     for(int i = 0; i < aeroBodyForces.size(); i++){
-        for(int j = 0; j < aeroBodyForces.size(); i++){
+        for(int j = 0; j < aeroBodyForces.size(); j++){
             _forces[i] += aeroBodyForces[j] * A[i][j];
         }       
     }
 
     //Добавление силы тяжесте
-    _forces[2] -= Atmosphere_GOST_4401_81<double>::get_g( get_y() ) * m;
+    _forces[1] -= Atmosphere_GOST_4401_81<double>::get_g( get_y() ) * m;
     
     //Установка действующих на ЛА сил в НЗСК
     if(!set_forces(_forces)){
@@ -137,7 +139,7 @@ bool Missile::calc_torques(){
     double h = get_y();
     double V = get_Vabs();
     double M = V / Atmosphere_GOST_4401_81<double>::SoundSpeed(h);
-    double q = Atmosphere_GOST_4401_81<double>::SoundSpeed(h) * V * V * 0.5;
+    double q = Atmosphere_GOST_4401_81<double>::Density(h) * V * V * 0.5;
     double Sm = M_PI * d * d * 0.25;
     double l_div_V = l / V;
     vector<double> alpha_beta = get_alpha_beta();
