@@ -1,4 +1,4 @@
-#include "../../include/aerodynamics/MissileAerodynamic.hpp"
+#include "../../include/aerodynamics/MissileTableAerodynamic.hpp"
 #include <iostream>
 #include <math.h>
 #include <fstream>
@@ -9,11 +9,11 @@
 
 using namespace std; 
 
-MissileAerodynamic::MissileAerodynamic(): isInit(false){}
+MissileTableAerodynamic::MissileTableAerodynamic(): isInit(false){}
 
-MissileAerodynamic::~MissileAerodynamic(){}
+MissileTableAerodynamic::~MissileTableAerodynamic(){}
 
-bool MissileAerodynamic::init(  const string& Cx_a_filename, const string& Cx_don_filename, const string& Cy_a_filename,
+bool MissileTableAerodynamic::init(  const string& Cx_a_filename, const string& Cx_don_filename, const string& Cy_a_filename,
                                 const string& Cy_delta_filename, const string& Mz_a_filename, const string& Mz_delta_filename,
                                 const string& Mz_wz_filename, const string& Mx_wx_filename, const string& Mx_delta_filename){
 
@@ -68,7 +68,7 @@ bool MissileAerodynamic::init(  const string& Cx_a_filename, const string& Cx_do
     return true;
 }
 
-double MissileAerodynamic::get_cx(double M, vector<double> &alpha_beta) const {
+double MissileTableAerodynamic::get_cx(double M, vector<double> &alpha_beta) const {
     if(!isInit){
         cout << "Аэродинамика не задана!\n";
         return 0;
@@ -76,7 +76,7 @@ double MissileAerodynamic::get_cx(double M, vector<double> &alpha_beta) const {
     return Cx_a_dat.interpolate(M, abs(alpha_beta[0])) * abs(alpha_beta[0]) + Cx_don_dat.interpolate(M, abs(alpha_beta[0]));   
 }
 
-double MissileAerodynamic::get_cy(double M, vector<double> &alpha_beta, vector<double>& deltas) const {
+double MissileTableAerodynamic::get_cy(double M, vector<double> &alpha_beta, vector<double>& deltas) const {
     if(!isInit){
         cout << "Аэродинамика не задана!\n";
         return 0;
@@ -84,7 +84,7 @@ double MissileAerodynamic::get_cy(double M, vector<double> &alpha_beta, vector<d
     return Cy_a_dat.interpolate(M, abs(alpha_beta[0])) * alpha_beta[0] + Cy_delta_dat.interpolate(M, abs(deltas[1])) * deltas[1]; 
 }
 
-double MissileAerodynamic::get_cz(double M, vector<double> &alpha_beta, vector<double>& deltas) const {
+double MissileTableAerodynamic::get_cz(double M, vector<double> &alpha_beta, vector<double>& deltas) const {
     if(!isInit){
         cout << "Аэродинамика не задана!\n";
         return 0;
@@ -92,7 +92,7 @@ double MissileAerodynamic::get_cz(double M, vector<double> &alpha_beta, vector<d
     return - Cy_a_dat.interpolate(M, abs(alpha_beta[1])) * alpha_beta[1] - Cy_delta_dat.interpolate(M, abs(deltas[2])) * deltas[2];    
 }
 
-double MissileAerodynamic::get_mx(double M, vector<double> &alpha_beta, vector<double>& deltas, vector<double> &w, double l_div_Vabs) const {
+double MissileTableAerodynamic::get_mx(double M, vector<double> &alpha_beta, vector<double>& deltas, vector<double> &w, double l_div_Vabs) const {
     if(!isInit){
         cout << "Аэродинамика не задана!\n";
         return 0;
@@ -100,7 +100,7 @@ double MissileAerodynamic::get_mx(double M, vector<double> &alpha_beta, vector<d
     return Mx_wx_dat.interpolate(M, abs(w[0])) * w[0] * l_div_Vabs + Mx_delta_dat.interpolate(M, abs(deltas[0])) * deltas[0];     
 }
 
-double MissileAerodynamic::get_my(double M, vector<double> &alpha_beta, vector<double>& deltas, vector<double> &w, double l_div_Vabs) const {
+double MissileTableAerodynamic::get_my(double M, vector<double> &alpha_beta, vector<double>& deltas, vector<double> &w, double l_div_Vabs) const {
     if(!isInit){
         cout << "Аэродинамика не задана!\n";
         return 0;
@@ -108,7 +108,7 @@ double MissileAerodynamic::get_my(double M, vector<double> &alpha_beta, vector<d
     return  Mz_a_dat.interpolate(M, abs(alpha_beta[1])) * alpha_beta[1] + Mz_delta_dat.interpolate(M, abs(deltas[1])) * deltas[1] + Mz_wz_dat.interpolate(M, abs(w[1])) * w[1] * l_div_Vabs;
 }
 
-double MissileAerodynamic::get_mz(double M, vector<double> &alpha_beta, vector<double>& deltas, vector<double> &w, double l_div_Vabs) const {
+double MissileTableAerodynamic::get_mz(double M, vector<double> &alpha_beta, vector<double>& deltas, vector<double> &w, double l_div_Vabs) const {
     if(!isInit){
         cout << "Аэродинамика не задана!\n";
         return 0;

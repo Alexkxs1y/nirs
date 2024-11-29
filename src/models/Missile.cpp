@@ -14,7 +14,7 @@ Missile::~Missile(){}
 
 bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J, vector<double>& _roll_yaw_pitch, 
                     double _l, double _d,
-                    vector<double>& _w, double _delta_max, MissileAerodynamic* _missileAerodynamic,
+                    vector<double>& _w, double _delta_max, MissileFuncAerodynamic* _missileAerodynamic,
                     MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target 
                     ){
     if(!RigidBody::init(_m, _stateVector, _J, _roll_yaw_pitch, _w)){
@@ -147,7 +147,7 @@ bool Missile::calc_torques(){
 
     //Подсчёт АД моментов
     vector<double> aeroTorques(3);
-    aeroTorques[0] = missileAerodynamic->get_mx(M, alpha_beta, deltas, w, l_div_V) * q * Sm * l;
+    aeroTorques[0] = missileAerodynamic->get_mx(M, alpha_beta, deltas, w, l_div_V) * q * Sm * l + missileAerodynamic->get_mStab() * deltas[0];
     aeroTorques[1] = missileAerodynamic->get_my(M, alpha_beta, deltas, w, l_div_V) * q * Sm * l;
     aeroTorques[2] = missileAerodynamic->get_mz(M, alpha_beta, deltas, w, l_div_V) * q * Sm * l;
 
@@ -158,4 +158,8 @@ bool Missile::calc_torques(){
     }
 
     return true;
+}
+
+vector<double> Missile::get_deltas(){
+    return deltas;
 }

@@ -4,7 +4,7 @@
 #include <math.h>
 #include <vector>
 #include "RigidBody.hpp"
-#include "../aerodynamics/MissileAerodynamic.hpp"
+#include "../aerodynamics/MissileFuncAerodynamic.hpp"
 #include "../control/MissileGuidance.hpp"
 #include "../control/MissileStabilization.hpp"
 
@@ -14,15 +14,16 @@ class Missile: public RigidBody{
         ~Missile();
         bool init(  double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, 
                     double _l, double _d,
-                    std::vector<double>& _w, double _delta_max, MissileAerodynamic* _missileAerodynamic,
+                    std::vector<double>& _w, double _delta_max, MissileFuncAerodynamic* _missileAerodynamic,
                     MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target
                     );
         bool STEP(double dt) override;
         bool set_controlParams(); //Установка текущих параметров управления
         void set_target(PointMass* _target); //Установка цели
+        std::vector<double> get_deltas(); //Выдача параметров управления
 
     private:
-        MissileAerodynamic* missileAerodynamic;
+        MissileFuncAerodynamic* missileAerodynamic;
         MissileStabilization* missileStabilization;
         MissileGuidance* missileGuidance;
         PointMass* target;
