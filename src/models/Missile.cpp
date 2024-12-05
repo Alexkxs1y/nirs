@@ -15,7 +15,7 @@ Missile::~Missile(){}
 bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J, vector<double>& _roll_yaw_pitch, 
                     double _l, double _d,
                     vector<double>& _w, double _delta_max, MissileFuncAerodynamic* _missileAerodynamic,
-                    MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target 
+                    MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target
                     ){
     if(!RigidBody::init(_m, _stateVector, _J, _roll_yaw_pitch, _w)){
         cout<<"Ошибка произошла при инициализации ракеты\n";
@@ -162,4 +162,8 @@ bool Missile::calc_torques(){
 
 vector<double> Missile::get_deltas(){
     return deltas;
+}
+
+PointMass* Missile::get_target(){
+    return target;
 }

@@ -10,36 +10,46 @@ TargetGuidance::TargetGuidance(): phi_hi(vector<double>(2)), V_rel(vector<double
 
 TargetGuidance::~TargetGuidance(){}
 
-vector<double> TargetGuidance::get_GuidanceSignal(PointMass* target, PointMass* missile){
-    if(!updateInformation(target, missile)){
-        return {0, 0};
+vector<double> TargetGuidance::get_GuidanceSignal(PointMass* target, PointMass* pursuer){
+    if(!updateInformation(target, pursuer)){
+        return {0, 0, 0};
     }
-    vector<double> signal(2);
+    vector<double> signal(3);
     signal = Transform_V_to_signal();
     return signal;
 }
 
-bool TargetGuidance::updateInformation(PointMass* target, PointMass* missile){
-    if(missile == 0){
+bool TargetGuidance::updateInformation(PointMass* target, PointMass* pursuer){
+    if(pursuer == 0){
         return false;
     }
-    r_rel = sqrt(   (target->get_x() - missile->get_x()) * (target->get_x() - missile->get_x()) + 
-                    (target->get_y() - missile->get_y()) * (target->get_y() - missile->get_y()) +
-                    (target->get_z() - missile->get_z()) * (target->get_z() - missile->get_z())
+    r_rel = sqrt(   (target->get_x() - pursuer->get_x()) * (target->get_x() - pursuer->get_x()) + 
+                    (target->get_y() - pursuer->get_y()) * (target->get_y() - pursuer->get_y()) +
+                    (target->get_z() - pursuer->get_z()) * (target->get_z() - pursuer->get_z())
                     );
     
     
-    phi_hi[0] = asin( (target->get_y() - missile->get_y()) / r_rel);
-    phi_hi[1] = -atan( ( target->get_z() - missile->get_z() ) / ( target->get_x() - missile->get_x() ) );
+    phi_hi[0] = asin( (target->get_y() - pursuer->get_y()) / r_rel);
+    phi_hi[1] = -atan( ( target->get_z() - pursuer->get_z() ) / ( target->get_x() - pursuer->get_x() ) );
 
     vector<double> V_tar = target->get_V();
-    vector<double> V_mis = missile->get_V();
+    vector<double> V_pur = pursuer->get_V();
     for(int i = 0; i < V_tar.size(); i++){
-        V_rel[i] = V_tar[i] - V_mis[i];
+        V_rel[i] = V_tar[i] - V_pur[i];
     }
     
     return true;
-} 
+}
+
+
+vector<double> TargetGuidance::A_0() const{
+    vector<double> _A_0(3);
+    _A_0[0] = cos(phi_hi[0]) * cos(phi_hi[1]);
+    _A_0[1] = -sin(phi_hi[0]);
+    _A_0[2] = - cos(phi_hi[0]) * sin(phi_hi[1]);
+    return _A_0;
+}
+
 
 vector<double> TargetGuidance::A_1() const{
     vector<double> _A_1(3);
@@ -87,9 +97,10 @@ vector<double> TargetGuidance::V_phi_hi() const{
 }   
 
 vector<double> TargetGuidance::Transform_V_to_signal() const{
+    vector<double> _A_0 = A_0();
     vector<double> _A_1 = A_1();
     vector<double> _A_2 = A_2();
-    vector<double> signal = {0, 0};
+    vector<double> signal = {0, 0, 0};
     vector<double> _V_phi_hi = V_phi_hi();
     double V_norm = sqrt(_V_phi_hi[0] * _V_phi_hi[0] + _V_phi_hi[1] * _V_phi_hi[1]);
     for(int i = 0; i < _V_phi_hi.size(); i++){
@@ -98,11 +109,12 @@ vector<double> TargetGuidance::Transform_V_to_signal() const{
 
     vector<double> V_sphere = {0, _V_phi_hi[0], _V_phi_hi[1]}; //Для красоты записи вектор скоростей перпендикулярных относительному радиусу
     for(int i = 0; i < V_sphere.size(); i++){
-        signal[0] += V_sphere[i] * _A_1[i];
-        signal[1] += V_sphere[i] * _A_2[i];
+        signal[0] += V_sphere[i] * _A_0[i];
+        signal[1] += V_sphere[i] * _A_1[i];
+        signal[2] += V_sphere[i] * _A_2[i];
     }
     if(_V_phi_hi[0] == 0 && _V_phi_hi[1] == 0){
-        signal = {0, 1};
+        signal = {0, 0, 1};
     }
     return signal;
 }   

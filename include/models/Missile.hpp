@@ -15,11 +15,12 @@ class Missile: public RigidBody{
         bool init(  double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, 
                     double _l, double _d,
                     std::vector<double>& _w, double _delta_max, MissileFuncAerodynamic* _missileAerodynamic,
-                    MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target
+                    MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target = 0
                     );
         bool STEP(double dt) override;
         bool set_controlParams(); //Установка текущих параметров управления
         void set_target(PointMass* _target); //Установка цели
+        PointMass* get_target(); //Выдача указателя на цель
         std::vector<double> get_deltas(); //Выдача параметров управления
 
     private:
