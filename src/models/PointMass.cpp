@@ -156,3 +156,7 @@ bool PointMass::set_state(vector<double>& _stateVector){
     forcesUpToDate = false;
     return true;
 }
+
+vector<double> PointMass::get_stateVector() const{
+    return stateVector;
+}

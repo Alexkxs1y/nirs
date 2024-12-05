@@ -38,6 +38,7 @@ class RigidBody: public PointMass{
         std::vector<double> get_dypr_dt() const; //Вернуть значение вектора (dyaw_dt, dpitch_dt, droll_dt)
         std::vector<double> get_alpha_beta() const; //Вернуть значение вектора (alpha, beta)
         std::vector<double> get_w() const; //Вернуть значение вектора угловых скоростей w = (wx, wy, wz)
+        std::vector<double> get_orientationVector() const; //Вернуть значения вектора ориентации (roll, yaw, pitch, wx, wy, wz)
 
     protected:
 

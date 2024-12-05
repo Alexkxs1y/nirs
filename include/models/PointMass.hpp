@@ -33,6 +33,7 @@ class PointMass{
 
         std::vector<double> get_r() const; //Вернуть значение радиус-вектора
         std::vector<double> get_V() const; //Вернуть значение вектора скорости
+        std::vector<double> get_stateVector() const; //Вернуть значения вектора-состояния
         std::vector<double> get_forces() const; //Вернуть значение сил
 
     protected:

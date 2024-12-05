@@ -234,3 +234,7 @@ bool RigidBody::set_state(vector<double>& _stateVector, vector<double>& _roll_ya
     torquesUpToDate = false;
     return true;
 }
+
+vector<double> RigidBody::get_orientationVector() const{
+    return orientationVector;
+}
