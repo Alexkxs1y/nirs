@@ -13,6 +13,7 @@ class IAerodynamic{
         virtual double get_mx(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas, std::vector<double> &w, double l_div_Vabs) const = 0;
         virtual double get_my(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas, std::vector<double> &w, double l_div_Vabs) const = 0;
         virtual double get_mz(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas, std::vector<double> &w, double l_div_Vabs) const = 0;
+        virtual double get_mStab() const = 0;
 };
 
 

@@ -1,1 +1,4 @@
 tests/
+*.dat
+.vscode
+fitting/

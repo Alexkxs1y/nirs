@@ -14,7 +14,7 @@ Missile::~Missile(){}
 
 bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J, vector<double>& _roll_yaw_pitch, 
                     double _l, double _d,
-                    vector<double>& _w, double _delta_max, MissileFuncAerodynamic* _missileAerodynamic,
+                    vector<double>& _w, double _delta_max, IAerodynamic* _missileAerodynamic,
                     MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target
                     ){
     if(!RigidBody::init(_m, _stateVector, _J, _roll_yaw_pitch, _w)){

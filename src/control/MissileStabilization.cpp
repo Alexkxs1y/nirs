@@ -13,7 +13,7 @@ MissileStabilization::~MissileStabilization(){}
 vector<double> MissileStabilization::get_controlParams(RigidBody* missile, std::vector<double>& guidanceSignal){
     vector<double> _controlParams(3);
     _controlParams[0] = -( K_roll * missile->get_roll() + K_stabilization[0] * missile->get_droll_dt());
-    _controlParams[1] = K_stabilization[1] * (-guidanceSignal[1] - missile->get_dyaw_dt()); //Добавил - перед сигналом СН, тк угол хи и рысканья отсчитываются в разные стороны
+    _controlParams[1] = K_stabilization[1] * (guidanceSignal[1] + missile->get_dyaw_dt()); //Добавил + перед изменением угла рысканья, т.к. угол хи и рысканья отсчитываются в разные стороны
     _controlParams[2] = K_stabilization[2] * (guidanceSignal[0] - missile->get_dpitch_dt());
     return _controlParams;
 }
