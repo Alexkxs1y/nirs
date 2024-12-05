@@ -75,12 +75,18 @@ vector<double> Missile::calc_bodyRelatedAeroForce(){
     double M = V / Atmosphere_GOST_4401_81<double>::SoundSpeed(h);
     double q = Atmosphere_GOST_4401_81<double>::Density(h) * V * V * 0.5;
     double Sm = M_PI * d * d * 0.25;
+    double F_max = 40 * m * Atmosphere_GOST_4401_81<double>::get_g(0); //Костыль====================================================
     vector<double> alpha_beta = get_alpha_beta();
 
     vector<double> aeroForces(3);
     aeroForces[0] = - missileAerodynamic->get_cx(M, alpha_beta) * q * Sm;
     aeroForces[1] = missileAerodynamic->get_cy(M, alpha_beta, deltas) * q * Sm;
     aeroForces[2] = missileAerodynamic->get_cz(M, alpha_beta, deltas) * q * Sm;
+    double F_perpend = sqrt(aeroForces[1] * aeroForces[1] + aeroForces[2] * aeroForces[2]);
+    if( F_perpend > F_max){
+        aeroForces[1] *= F_max / F_perpend;
+        aeroForces[2] *= F_max / F_perpend;
+    }
 
     return aeroForces;
 }
