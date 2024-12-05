@@ -11,6 +11,9 @@ class PointMass{
 
         bool init(double _m, std::vector<double>& _stateVector);
 
+        //Установка новго состояния точки
+        bool set_state(std::vector<double>& _stateVector);
+
         virtual bool STEP(double dt); //Функция шага по времени 
 
         virtual ~PointMass();   

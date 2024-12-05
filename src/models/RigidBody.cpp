@@ -220,3 +220,17 @@ double RigidBody::dwy_dt() const{
 double RigidBody::dwz_dt() const{
     return torques[2] / J[2] - (J[1] - J[0]) / J[2] * orientationVector[3] * orientationVector[4];
 }
+
+bool RigidBody::set_state(vector<double>& _stateVector, vector<double>& _roll_yaw_pitch, vector<double>& _w){
+    if(!PointMass::set_state(_stateVector)) return false;
+    if(_roll_yaw_pitch.size() + _w.size() != orientationVector.size() || _roll_yaw_pitch.size() != _w.size()){
+        throw std::runtime_error(   "Exception in RigidBody::set_state(vector<double>& _stateVector, vector<double>& _roll_yaw_pitch, vector<double>& _w). Wrong _w or _roll_yaw_pitch size!\n");
+        return false;
+    }
+    for(int i = 0; i < _w.size(); i++){
+        orientationVector[i] = _roll_yaw_pitch[i];
+        orientationVector[i + 3] = _w[i];
+    }
+    torquesUpToDate = false;
+    return true;
+}

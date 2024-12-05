@@ -11,6 +11,9 @@ class RigidBody: public PointMass{
 
         bool init(double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w);
 
+        //Установка новго состояния твердого тела
+        bool set_state(std::vector<double>& _stateVector, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w);
+
         bool STEP(double dt) override; //Шаг по вревемин для твердого тела
 
         ~RigidBody();

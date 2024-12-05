@@ -144,3 +144,15 @@ double PointMass::dVy_dt() const{
 double PointMass::dVz_dt() const{
     return forces[2] / m;
 }
+
+bool PointMass::set_state(vector<double>& _stateVector){
+    if(_stateVector.size() != stateVector.size()){
+        throw std::runtime_error("Exception in PointMass::set_state(vector<double>& _stateVector). Wrong _stateVector size!\n");
+        return false;
+    }
+    for(int i = 0; i < stateVector.size(); i++){
+        stateVector[i] = _stateVector[i];
+    }
+    forcesUpToDate = false;
+    return true;
+}
