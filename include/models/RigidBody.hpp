@@ -35,6 +35,7 @@ class RigidBody: public PointMass{
         double get_beta() const; //Вернуть значение угла скольжения
 
         std::vector<double> get_ypr() const; //Вернуть значение вектора (yaw, pitch, roll)
+        std::vector<double> get_ryp() const; //Вернуть значение вектора (roll, yaw, pitch)
         std::vector<double> get_dypr_dt() const; //Вернуть значение вектора (dyaw_dt, dpitch_dt, droll_dt)
         std::vector<double> get_alpha_beta() const; //Вернуть значение вектора (alpha, beta)
         std::vector<double> get_w() const; //Вернуть значение вектора угловых скоростей w = (wx, wy, wz)

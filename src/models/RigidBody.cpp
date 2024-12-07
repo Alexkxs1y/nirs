@@ -238,3 +238,11 @@ bool RigidBody::set_state(vector<double>& _stateVector, vector<double>& _roll_ya
 vector<double> RigidBody::get_orientationVector() const{
     return orientationVector;
 }
+
+vector<double> RigidBody::get_ryp() const{
+     vector<double> _ryp(3);
+    _ryp[0] = orientationVector[0];
+    _ryp[1] = orientationVector[1];
+    _ryp[2] = orientationVector[2];
+    return _ryp;
+}
