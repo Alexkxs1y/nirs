@@ -9,6 +9,6 @@
 std::vector<double> hitPointFinder(Missile* missile, Target* target, double effectiveRadius, double dt);
 
 //Построитель плоскости достижимости. Варьируется только положение XZ цели 
-std::vector< std::vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double dt);
+std::vector< std::vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints = 36);
 
 #endif
