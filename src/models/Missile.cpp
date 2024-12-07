@@ -130,7 +130,7 @@ bool Missile::calc_forces(){
     }
 
     //Добавление силы тяжесте
-    _forces[1] -= Atmosphere_GOST_4401_81<double>::get_g( get_y() ) * m;
+    //_forces[1] -= Atmosphere_GOST_4401_81<double>::get_g( get_y() ) * m; //Считаем, что сила тяжести мала
     
     //Установка действующих на ЛА сил в НЗСК
     if(!set_forces(_forces)){
