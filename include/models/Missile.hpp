@@ -12,9 +12,8 @@ class Missile: public RigidBody{
     public:
         Missile();
         ~Missile();
-        bool init(  double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, 
-                    double _l, double _d,
-                    std::vector<double>& _w, double _delta_max, IAerodynamic* _missileAerodynamic,
+        bool init(  double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w, 
+                    double _l, double _d, double _delta_max, IAerodynamic* _missileAerodynamic,
                     MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target = 0
                     );
         bool STEP(double dt) override;

@@ -11,4 +11,8 @@ std::vector<double> hitPointFinder(Missile* missile, Target* target, double effe
 //Построитель плоскости достижимости. Варьируется только положение XZ цели 
 std::vector< std::vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints = 36);
 
+//Построитель зоны неухода. Для текущей конфигурации цель-ракета
+//При прямолинейном движении цели зона зависит от скорости цели, скорости ракеты, направления относительной скорости. (Относительную скорость будем рассматривать относительно ракеты).
+std::vector< std::vector< std::vector<double> > > noEscapeZone(Missile* missile, Target* target, double V_mis, double V_tar, double yaw_rel, double pitch_rel, double effectiveRadius, double tolerance, double dt, int numPoints = 36);
+
 #endif

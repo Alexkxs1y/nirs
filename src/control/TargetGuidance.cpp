@@ -103,6 +103,12 @@ vector<double> TargetGuidance::Transform_V_to_signal() const{
     vector<double> signal = {0, 0, 0};
     vector<double> _V_phi_hi = V_phi_hi();
     double V_norm = sqrt(_V_phi_hi[0] * _V_phi_hi[0] + _V_phi_hi[1] * _V_phi_hi[1]);
+    
+    //Если линия визирования не двигается - пусть цель начинает двигать её в сторону z
+    if(V_norm == 0){
+        return {0, 0, 1};
+    }
+
     for(int i = 0; i < _V_phi_hi.size(); i++){
         _V_phi_hi[i] /= V_norm;
     }
@@ -113,8 +119,6 @@ vector<double> TargetGuidance::Transform_V_to_signal() const{
         signal[1] += V_sphere[i] * _A_1[i];
         signal[2] += V_sphere[i] * _A_2[i];
     }
-    if(_V_phi_hi[0] == 0 && _V_phi_hi[1] == 0){
-        signal = {0, 0, 1};
-    }
+    
     return signal;
 }   

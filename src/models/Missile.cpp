@@ -12,9 +12,8 @@ Missile::Missile(): deltas(vector<double>(3)), missileAerodynamic(0), missileSta
 
 Missile::~Missile(){}
 
-bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J, vector<double>& _roll_yaw_pitch, 
-                    double _l, double _d,
-                    vector<double>& _w, double _delta_max, IAerodynamic* _missileAerodynamic,
+bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J, vector<double>& _roll_yaw_pitch, vector<double>& _w,
+                    double _l, double _d, double _delta_max, IAerodynamic* _missileAerodynamic,
                     MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target
                     ){
     if(!RigidBody::init(_m, _stateVector, _J, _roll_yaw_pitch, _w)){
