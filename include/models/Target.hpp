@@ -16,6 +16,7 @@ class Target: public PointMass{
         bool STEP(double dt) override;
         bool set_controlParams(); //Установка текущих параметров управления
         void set_pursuer(PointMass* _pursuer); //Установка цели
+        PointMass* get_pursuer() const; //Возвращает указатель на преследователя
         std::vector<double> get_n_xyz() const; //Выдача параметров управления
 
     private:

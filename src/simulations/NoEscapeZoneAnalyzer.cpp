@@ -6,14 +6,13 @@
 #include "../../include/simulations/NoEscapeZoneAnalyzer.hpp"
 #include "../../include/utils/MyMath.hpp"
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
 vector<double> hitPointFinder(Missile* missile, Target* target, double effectiveRadius, double dt){
     
     bool inZone = false;
-    vector<double> missile_stateVector = missile -> get_stateVector();
-    vector<double> missile_w = missile -> get_w();
     vector<double> missile_ryp = missile -> get_ryp();
     vector<double> target_stateVector = target -> get_stateVector();
     vector<double> target_stateVector_initial = target_stateVector;
@@ -21,6 +20,7 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
     vector<double> flight_res(5);
 
     double h = 250;
+    double salt = 10; //Значение, чтобы сделать ненулевое начальное положение цели
     int i_max = 50; //Тут рандом...................................................    
     int i = 0;
     double missDistance = 2 * effectiveRadius;
@@ -29,10 +29,9 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
     vector<double> hitPoint = {0};
     
     while(i <= i_max){
-        target_stateVector[0] = (10 + double(i) * h) * cos_y;
-        target_stateVector[2] = (10 + double(i) * h) * sin_y;
+        target_stateVector[0] = (salt + double(i) * h) * cos_y;
+        target_stateVector[2] = (salt + double(i) * h) * sin_y;
 
-        missile -> set_state(missile_stateVector, missile_ryp, missile_w);
         target -> set_state(target_stateVector);
 
         flight_res = oneMissileSimulation(missile, target, dt);
@@ -61,7 +60,6 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
         i ++;
     }
     
-    missile -> set_state(missile_stateVector, missile_ryp, missile_w);
     target -> set_state(target_stateVector_initial);
     
     return  hitPoint;
@@ -71,7 +69,12 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
 
 
 vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints){
-    
+
+    ofstream out;          
+    int hhh = int(target->get_y());
+    string name = "res_" + to_string(hhh) + ".dat"; 
+          
+
     vector< vector<double> > noEscapeSurface(numPoints, vector<double>(2));
     vector<double> hitPoint = hitPointFinder(missile, target, effectiveRadius, dt);
 
@@ -85,8 +88,6 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
 
     vector<double> target_stateVector = target -> get_stateVector();
     vector<double> target_stateVector_initial = target_stateVector;
-    vector<double> missile_stateVector = missile -> get_stateVector();
-    vector<double> missile_w = missile -> get_w();
     vector<double> missile_ryp = missile -> get_ryp();
     
     vector<double> flightRes(5);
@@ -97,15 +98,18 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
     double cos_i = 0;
     double sin_i = 0;
     bool isStepBack = false;
+
+    int hit_x = (numZones - 1) * 3 + 1;
+    int hit_z = (numZones - 1) * 3 + 3;
     
 
     for(int i = 0; i < numPoints; i++){
         
-        searchAngle = missile_ryp[1] + i * 2 * M_PI / double(numPoints); 
+        searchAngle = missile_ryp[1] + double(i) * 2.0 * M_PI / double(numPoints); 
         cos_i = cos( searchAngle );
         sin_i = sin( searchAngle );
-        target_stateVector[0] = hitPoint[(numZones - 1) * 3 + 1];
-        target_stateVector[2] = hitPoint[(numZones - 1)* 3 + 3];
+        target_stateVector[0] = hitPoint[hit_x];
+        target_stateVector[2] = hitPoint[hit_z];
         missDistanse = 0;
         h = 1000;
         isStepBack = false;
@@ -124,7 +128,6 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
                 target_stateVector[2] -= h * sin_i;
                 isStepBack = true;                    
             }
-            missile -> set_state(missile_stateVector, missile_ryp, missile_w);
             target -> set_state(target_stateVector);
             flightRes = oneMissileSimulation(missile, target, dt);
             missDistanse = flightRes[0];
@@ -133,14 +136,17 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
             }
         }
         if(i == 0){
-            hitPoint[(numZones - 1) * 3 + 1] = 0.5 * (hitPoint[(numZones - 1) * 3 + 1] + target_stateVector[0]);
-            hitPoint[(numZones - 1) * 3 + 3] = 0.5 * (hitPoint[(numZones - 1) * 3 + 3] + target_stateVector[2]);
+            hitPoint[hit_x] = 0.5 * (hitPoint[hit_x] + target_stateVector[0]);
+            hitPoint[hit_z] = 0.5 * (hitPoint[hit_z] + target_stateVector[2]);
         }
         noEscapeSurface[i] = {target_stateVector[0], target_stateVector[2]};
+        
+        out.open(name, ios::app);
+        out << noEscapeSurface[i][0] << ' ' << noEscapeSurface[i][1] << '\n';
+        out.close(); 
         cout << noEscapeSurface[i][0] << ' ' << noEscapeSurface[i][1] << '\n';
     }
 
-    missile -> set_state(missile_stateVector, missile_ryp, missile_w);
     target -> set_state(target_stateVector_initial);
 
     return noEscapeSurface;
@@ -148,37 +154,67 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
 
 
 
-vector< vector< vector<double> > > noEscapeZone(Missile* missile, Target* target, double V_mis, double V_tar, double yaw_rel, double pitch_rel, double effectiveRadius, double tolerance, double dt, int numPoints){
+vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile, Target* target, double V_mis, double V_tar, double yaw_rel, double pitch_rel, double effectiveRadius, double tolerance, double dt, int numPoints){
     double y_mid = 6000; // Будем считать, что это высота, на которой находится ракета. Относительно неё будем варьировать высоту цели.
+    
+    //НУ для движения цели и ракеты
     vector<double> stateVector_tar_initial = target -> get_stateVector();
     vector<double> stateVector_mis_initial = missile -> get_stateVector();
     vector<double> ryp_mis_initial = missile -> get_ryp();
     vector<double> w_mis_initial = missile -> get_w();
 
+    //Мы считаем, что ракета маневренная и g не учитываем. 
+    //Поэтому при варьировании конфугурации системы цель-ракета, можно задавать только угол их относительной скорости 
+    //и считать, что скорость ракеты всегда направлена по оси Ox НЗСК. Так же считаем, что в начальный момент ракета стабилизирована
     vector<double> stateVector_mis = {0, y_mid ,0, V_mis, 0, 0};
     vector<double> stateVector_tar = {0, y_mid , 0, V_tar * cos(yaw_rel) * cos(pitch_rel), V_tar * cos(yaw_rel) * sin(pitch_rel), V_tar * sin(yaw_rel)};
     vector<double> ryp = {0, 0, 0};
     vector<double> w = {0, 0, 0};
-    double h_step = 100;
-    bool outOfZone = false;
-
-    vector< vector<double> > _noEscapeSurface(numPoints, vector<double>(2));
-    vector< vector< vector<double> > > noEscapeZone;
-    
     missile -> set_state(stateVector_mis, ryp, w);
     target -> set_state(stateVector_tar);
 
+    double h_step = 200;
+    bool outOfZone = false;
+
+    vector< vector<double> > _noEscapeSurface(numPoints, vector<double>(2));
+    vector< pair< double, vector< vector<double> > > > noEscapeZone;
+    
+
+    //От плоскости ракеты делаем шаги вверх
     while(!outOfZone){
         _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, dt, numPoints);
+        
+        //Проверка, что на рассматриваемой высоте есть попадания, иначе считаем, что вышли из зоны
         if(_noEscapeSurface[0][0] == 0 && _noEscapeSurface[1][0] == 0){
             outOfZone = true;
         } else {
-            noEscapeZone.push_back(_noEscapeSurface);
+            noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
             stateVector_tar[1] += h_step;
             target -> set_state(stateVector_tar);
         }
     }
 
+    outOfZone = false;
+
+    //От плоскости ракеты делаем шаги вниз
+    while(!outOfZone){
+        stateVector_tar[1] = -h_step;
+        target -> set_state(stateVector_tar);
+        _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, dt, numPoints);
+        
+        //Проверка, что на рассматриваемой высоте есть попадания, иначе считаем, что вышли из зоны
+        if(_noEscapeSurface[0][0] == 0 && _noEscapeSurface[1][0] == 0){
+            outOfZone = true;
+        } else {
+            noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
+            stateVector_tar[1] -= h_step;
+            target -> set_state(stateVector_tar);
+        }
+    }
+
+
+
+    //Возвращение цели и ракеты в начальное состояние, как перед использованием этой функции
     missile -> set_state(stateVector_mis_initial, ryp_mis_initial, w_mis_initial);
     target -> set_state(stateVector_tar_initial);
 

@@ -71,3 +71,7 @@ vector<double> Target::get_n_xyz() const{
     return n_xyz;
 }
 
+PointMass* Target::get_pursuer() const{
+    return pursuer;
+}
+
