@@ -7,11 +7,57 @@
 #include "../../include/utils/MyMath.hpp"
 #include <iostream>
 #include <fstream>
+#include <time.h>
 
 using namespace std;
 
-vector<double> hitPointFinder(Missile* missile, Target* target, double effectiveRadius, double dt){
+vector<double> luckyHitFinder(Missile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt){
+    double h = 250;
+    int i_max = 10;
+    int i = 1;
+
+    vector<double> missile_ryp = missile -> get_ryp();
+    vector<double> target_stateVector = target -> get_stateVector();
+    vector<double> target_stateVector_initial = target_stateVector;
+
+    vector<double> flight_res = {0, 0, 0, 0, 0};
+
+    double missDistance = 2 * effectiveRadius;
+    double cos_y = cos(missile_ryp[1]);
+    double sin_y = sin(missile_ryp[1]);
     
+    while(i <= i_max){
+        target_stateVector[0] = approxPointX + double(i) * h * cos_y;
+        target_stateVector[2] = approxPointZ + double(i) * h * sin_y;
+
+        target -> set_state(target_stateVector);
+
+        flight_res = oneMissileSimulation(missile, target, dt);
+
+        if(flight_res[4] < 0){
+            i ++;
+            continue;
+        }
+        
+        if(flight_res[0] < effectiveRadius){
+            return {1, target_stateVector[0], target_stateVector[1], target_stateVector[2]};
+        }
+        i ++;
+    }
+    
+    target -> set_state(target_stateVector_initial);
+    
+    return  {0};
+
+}
+
+vector<double> hitPointFinder(Missile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt){
+    
+    if(approxPointX != 0 || approxPointZ != 0){
+        vector<double> luckyHitPoint = luckyHitFinder(missile, target, effectiveRadius, approxPointX, approxPointZ, dt);
+        if(luckyHitPoint[0] == 1) return luckyHitPoint;
+    }
+
     bool inZone = false;
     vector<double> missile_ryp = missile -> get_ryp();
     vector<double> target_stateVector = target -> get_stateVector();
@@ -21,7 +67,7 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
 
     double h = 250;
     double salt = 10; //Значение, чтобы сделать ненулевое начальное положение цели
-    int i_max = 50; //Тут рандом...................................................    
+    int i_max = 80; //Тут рандом...................................................    
     int i = 0;
     double missDistance = 2 * effectiveRadius;
     double cos_y = cos(missile_ryp[1]);
@@ -68,7 +114,7 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
 
 
 
-vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints){
+vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double approxPointX, double approxPointZ, double dt, int numPoints){
 
     ofstream out;          
     int hhh = int(target->get_y());
@@ -76,7 +122,7 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
           
 
     vector< vector<double> > noEscapeSurface(numPoints, vector<double>(2));
-    vector<double> hitPoint = hitPointFinder(missile, target, effectiveRadius, dt);
+    vector<double> hitPoint = hitPointFinder(missile, target, effectiveRadius, approxPointX, approxPointZ, dt);
 
     int numZones = hitPoint[0];
     if(numZones == 0){
@@ -179,16 +225,25 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
     vector< vector<double> > _noEscapeSurface(numPoints, vector<double>(2));
     vector< pair< double, vector< vector<double> > > > noEscapeZone;
     
+    clock_t tStart = clock();
+
+    double approxPointX = 0;
+    double approxPointZ = 0;
 
     //От плоскости ракеты делаем шаги вверх
     while(!outOfZone){
-        _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, dt, numPoints);
+        _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, approxPointX, approxPointZ, dt, numPoints);
         
         //Проверка, что на рассматриваемой высоте есть попадания, иначе считаем, что вышли из зоны
         if(_noEscapeSurface[0][0] == 0 && _noEscapeSurface[1][0] == 0){
             outOfZone = true;
+            approxPointX = 0;
+            approxPointZ = 0;
         } else {
             noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
+            approxPointX = _noEscapeSurface[int(numPoints * 0.5) - 1][0];
+            approxPointZ = _noEscapeSurface[int(numPoints * 0.5) - 1][1];
+            cout<< "Высота: " << stateVector_tar[1] << ". За время: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << '\n';
             stateVector_tar[1] += h_step;
             target -> set_state(stateVector_tar);
         }
@@ -198,15 +253,21 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
 
     //От плоскости ракеты делаем шаги вниз
     while(!outOfZone){
-        stateVector_tar[1] = -h_step;
+        stateVector_tar[1] = stateVector_mis[1] - h_step;
         target -> set_state(stateVector_tar);
-        _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, dt, numPoints);
+        _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, approxPointX, approxPointZ, dt, numPoints);
         
         //Проверка, что на рассматриваемой высоте есть попадания, иначе считаем, что вышли из зоны
         if(_noEscapeSurface[0][0] == 0 && _noEscapeSurface[1][0] == 0){
             outOfZone = true;
+            approxPointX = 0;
+            approxPointZ = 0;
+
         } else {
             noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
+            approxPointX = _noEscapeSurface[int(numPoints * 0.5) - 1][0];
+            approxPointZ = _noEscapeSurface[int(numPoints * 0.5) - 1][1];
+            cout<< "Высота: " << stateVector_tar[1] << ". За время: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << '\n';
             stateVector_tar[1] -= h_step;
             target -> set_state(stateVector_tar);
         }

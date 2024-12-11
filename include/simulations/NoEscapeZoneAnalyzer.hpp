@@ -6,10 +6,13 @@
 #include "OneMissileSimulation.hpp"
 
 //Находит точку принадлежащую плоскости достижимости на высоте цели
-std::vector<double> hitPointFinder(Missile* missile, Target* target, double effectiveRadius, double dt);
+std::vector<double> hitPointFinder(Missile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt);
+
+//Попытка найти попадающую точку по предыдущему слою
+std::vector<double> luckyHitFinder(Missile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt);
 
 //Построитель плоскости достижимости. Варьируется только положение XZ цели 
-std::vector< std::vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints = 36);
+std::vector< std::vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double approxPointX, double approxPointZ, double dt, int numPoints = 36);
 
 //Построитель зоны неухода. Для текущей конфигурации цель-ракета
 //При прямолинейном движении цели зона зависит от скорости цели, скорости ракеты, направления относительной скорости. (Относительную скорость будем рассматривать относительно ракеты).
