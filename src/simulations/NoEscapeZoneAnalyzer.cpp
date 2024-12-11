@@ -12,7 +12,7 @@
 using namespace std;
 
 vector<double> luckyHitFinder(Missile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt){
-    double h = 250;
+    double h = 500;
     int i_max = 10;
     int i = 1;
 
@@ -55,7 +55,7 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
     
     if(approxPointX != 0 || approxPointZ != 0){
         vector<double> luckyHitPoint = luckyHitFinder(missile, target, effectiveRadius, approxPointX, approxPointZ, dt);
-        if(luckyHitPoint[0] == 1) return luckyHitPoint;
+        return luckyHitPoint;
     }
 
     bool inZone = false;
@@ -65,9 +65,9 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
 
     vector<double> flight_res(5);
 
-    double h = 250;
+    double h = 500;
     double salt = 10; //Значение, чтобы сделать ненулевое начальное положение цели
-    int i_max = 80; //Тут рандом...................................................    
+    int i_max = 40; //Тут рандом...................................................    
     int i = 0;
     double missDistance = 2 * effectiveRadius;
     double cos_y = cos(missile_ryp[1]);
@@ -138,7 +138,7 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
     
     vector<double> flightRes(5);
     int j = 1;
-    double h = 1000;
+    double h = 8000;
     double missDistanse = 0;
     double searchAngle;
     double cos_i = 0;
@@ -157,7 +157,7 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
         target_stateVector[0] = hitPoint[hit_x];
         target_stateVector[2] = hitPoint[hit_z];
         missDistanse = 0;
-        h = 1000;
+        h = 8000;
         isStepBack = false;
 
         while(abs(missDistanse - effectiveRadius) > tolerance){
@@ -165,7 +165,7 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
                 if(isStepBack){
                     h *= 0.5;
                 }
-                if(h < 0.5) break; //Тоже микрокостыль для ускорения******************************************************
+                if(h < 10) break; //Тоже микрокостыль для ускорения******************************************************
                 target_stateVector[0] += h * cos_i;
                 target_stateVector[2] += h * sin_i;
             } else {
@@ -241,8 +241,8 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
             approxPointZ = 0;
         } else {
             noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
-            approxPointX = _noEscapeSurface[int(numPoints * 0.5) - 1][0];
-            approxPointZ = _noEscapeSurface[int(numPoints * 0.5) - 1][1];
+            approxPointX = _noEscapeSurface[int(numPoints * 0.5)][0];
+            approxPointZ = _noEscapeSurface[int(numPoints * 0.5)][1];
             cout<< "Высота: " << stateVector_tar[1] << ". За время: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << '\n';
             stateVector_tar[1] += h_step;
             target -> set_state(stateVector_tar);
@@ -265,8 +265,8 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
 
         } else {
             noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
-            approxPointX = _noEscapeSurface[int(numPoints * 0.5) - 1][0];
-            approxPointZ = _noEscapeSurface[int(numPoints * 0.5) - 1][1];
+            approxPointX = _noEscapeSurface[int(numPoints * 0.5)][0];
+            approxPointZ = _noEscapeSurface[int(numPoints * 0.5)][1];
             cout<< "Высота: " << stateVector_tar[1] << ". За время: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << '\n';
             stateVector_tar[1] -= h_step;
             target -> set_state(stateVector_tar);

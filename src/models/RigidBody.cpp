@@ -210,14 +210,23 @@ double RigidBody::dpitch_dt() const{
 }
 
 double RigidBody::dwx_dt() const{
+    if(!torquesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Torques are not upToDate\n");
+    }
     return torques[0] / J[0] - (J[2] - J[1]) / J[0] * orientationVector[4] * orientationVector[5];
 }
 
 double RigidBody::dwy_dt() const{
+    if(!torquesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Torques are not upToDate\n");
+    }
     return torques[1] / J[1] - (J[0] - J[2]) / J[1] * orientationVector[3] * orientationVector[5];
 }
 
 double RigidBody::dwz_dt() const{
+    if(!torquesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Torques are not upToDate\n");
+    }
     return torques[2] / J[2] - (J[1] - J[0]) / J[2] * orientationVector[3] * orientationVector[4];
 }
 
@@ -246,3 +255,38 @@ vector<double> RigidBody::get_ryp() const{
     _ryp[2] = orientationVector[2];
     return _ryp;
 }
+
+vector<double> RigidBody::get_dryp_dt() const {
+    vector<double> _d_ryp_dt(3);
+    _d_ryp_dt[0] = droll_dt();
+    _d_ryp_dt[1] = dyaw_dt();
+    _d_ryp_dt[2] = dpitch_dt();
+    return _d_ryp_dt;
+}
+
+vector<double> RigidBody::get_dw_dt() const{
+    if(!torquesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Torques are not upToDate\n");
+    }
+    vector<double> _dw_dt(3);
+    _dw_dt[0] = dwx_dt();
+    _dw_dt[1] = dwy_dt();
+    _dw_dt[2] = dwz_dt();
+    return _dw_dt;
+}
+
+bool RigidBody::STEP(double dt, vector<double> dr_dt, vector<double> dV_dt, vector<double> dryp_dt, vector<double> dw_dt){
+    if(!PointMass::STEP(dt, dr_dt, dV_dt)){
+        throw std::runtime_error("Exception while try to do STEP in PointMass from RigidBody\n");
+        return false;
+    }
+
+    for(int i = 0; i < 3; i++){
+        orientationVector[i] += dryp_dt[i] * dt;
+        orientationVector[i + 3] += dw_dt[i] * dt; 
+    }
+
+    torquesUpToDate = false;
+
+    return true;
+}   

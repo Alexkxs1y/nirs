@@ -15,6 +15,9 @@ class RigidBody: public PointMass{
         bool set_state(std::vector<double>& _stateVector, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w);
 
         bool STEP(double dt) override; //Шаг по вревемин для твердого тела
+        //using PointMass::STEP_der(double dt, std::vector<double> dr_dt, std::vector<double> dV_dt);
+        bool STEP(double dt, std::vector<double> dr_dt, std::vector<double> dV_dt, std::vector<double> dryp_dt, std::vector<double> dw_dt); //Шаг по времени с заданием производных
+
 
         ~RigidBody();
 
@@ -36,9 +39,11 @@ class RigidBody: public PointMass{
 
         std::vector<double> get_ypr() const; //Вернуть значение вектора (yaw, pitch, roll)
         std::vector<double> get_ryp() const; //Вернуть значение вектора (roll, yaw, pitch)
+        std::vector<double> get_dryp_dt() const; //Вернуть значение вектора (droll_dt, dyaw_dt, dpitch_dt)
         std::vector<double> get_dypr_dt() const; //Вернуть значение вектора (dyaw_dt, dpitch_dt, droll_dt)
         std::vector<double> get_alpha_beta() const; //Вернуть значение вектора (alpha, beta)
         std::vector<double> get_w() const; //Вернуть значение вектора угловых скоростей w = (wx, wy, wz)
+        std::vector<double> get_dw_dt() const; //Вернуть значение вектора угловых скоростей dw_dt = (dwx_dt, dwy_dt, dwz_dt)
         std::vector<double> get_orientationVector() const; //Вернуть значения вектора ориентации (roll, yaw, pitch, wx, wy, wz)
 
     protected:

@@ -14,6 +14,7 @@ class Target: public PointMass{
                      TargetGuidance* _targetGuidance, PointMass* _pursuer = 0
                     );
         bool STEP(double dt) override;
+        bool set_actualForceAndTorques();
         bool set_controlParams(); //Установка текущих параметров управления
         void set_pursuer(PointMass* _pursuer); //Установка цели
         PointMass* get_pursuer() const; //Возвращает указатель на преследователя

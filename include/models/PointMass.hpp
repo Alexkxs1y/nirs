@@ -15,6 +15,7 @@ class PointMass{
         bool set_state(std::vector<double>& _stateVector);
 
         virtual bool STEP(double dt); //Функция шага по времени 
+        bool STEP(double dt, std::vector<double> dr_dt, std::vector<double> dV_dt); //Шаг по времени с заданием производных
 
         virtual ~PointMass();   
 
@@ -35,6 +36,8 @@ class PointMass{
         std::vector<double> get_V() const; //Вернуть значение вектора скорости
         std::vector<double> get_stateVector() const; //Вернуть значения вектора-состояния
         std::vector<double> get_forces() const; //Вернуть значение сил
+        std::vector<double> get_dr_dt() const; //Вернуть значение производной радиус-вектора
+        std::vector<double> get_dV_dt() const; //Вернуть значение производной вектора скорости
 
     protected:
 

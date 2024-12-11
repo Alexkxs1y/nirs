@@ -68,6 +68,20 @@ bool Missile::STEP(double dt){
     return true;
 }
 
+bool Missile::set_actualForceAndTorques(){
+    if(!deltaUpToDate){
+        throw std::runtime_error("Try to set Forces and Torques without set deltas. Deltas not upToDate\n");
+        return false;
+    }
+    if(!(calc_forces() && calc_torques())){
+        throw std::runtime_error("While setting forces and torques in Missile class method.\n");
+        return false;
+    }
+
+    deltaUpToDate = false;
+    return true; 
+}
+
 vector<double> Missile::calc_bodyRelatedAeroForce(){
     double h = get_y();
     double V = get_Vabs();

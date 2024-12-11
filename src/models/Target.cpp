@@ -75,3 +75,22 @@ PointMass* Target::get_pursuer() const{
     return pursuer;
 }
 
+bool Target::set_actualForceAndTorques(){
+    if(!nUpToDate){
+        throw std::runtime_error("Try to set Forces and Torques without set target guidance. N's are not upToDate\n");
+    }
+
+    vector<double> _forces(3);
+    for(int i = 0; i < _forces.size(); i++){
+        _forces[i] = m * Atmosphere_GOST_4401_81<double>::get_g(this->get_y()) * n_xyz[i];
+    }
+
+    if(!this->set_forces(_forces)){
+        throw std::runtime_error("Goes wrong while set actual forces and torques to target!\n");
+    }
+
+    nUpToDate = false;
+
+    return true;
+}
+

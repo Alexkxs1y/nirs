@@ -134,14 +134,23 @@ double PointMass::dz_dt() const{
 }
 
 double PointMass::dVx_dt() const{
+    if(!forcesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Forces are not upToDate\n");
+    }
     return forces[0] / m;
 }
 
 double PointMass::dVy_dt() const{
+    if(!forcesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Forces are not upToDate\n");
+    }
     return forces[1] / m;
 }
 
 double PointMass::dVz_dt() const{
+    if(!forcesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Forces are not upToDate\n");
+    }
     return forces[2] / m;
 }
 
@@ -159,4 +168,33 @@ bool PointMass::set_state(vector<double>& _stateVector){
 
 vector<double> PointMass::get_stateVector() const{
     return stateVector;
+}
+
+vector<double> PointMass::get_dr_dt() const{
+    vector<double> _dr_dt(3);
+    _dr_dt[0] = dx_dt();
+    _dr_dt[1] = dy_dt();
+    _dr_dt[2] = dz_dt();
+
+    return _dr_dt;
+}
+
+vector<double> PointMass::get_dV_dt() const{
+    if(!forcesUpToDate){
+        throw std::runtime_error("Try to get not valid derivates. Forces are not upToDate\n");
+    }
+    vector<double> _dV_dt(3);
+    _dV_dt[0] = dVx_dt();
+    _dV_dt[1] = dVy_dt();
+    _dV_dt[2] = dVz_dt();
+    return _dV_dt;
+}
+
+bool PointMass::STEP(double dt, std::vector<double> dr_dt, std::vector<double> dV_dt){
+    for(int i = 0; i < 3; i++){
+        stateVector[i] += dr_dt[i] * dt;
+        stateVector[i + 3] += dV_dt[i] * dt;
+    }
+    forcesUpToDate = false;
+    return true;
 }

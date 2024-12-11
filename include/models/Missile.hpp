@@ -17,6 +17,7 @@ class Missile: public RigidBody{
                     MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target = 0
                     );
         bool STEP(double dt) override;
+        bool set_actualForceAndTorques(); //Установка сил и моментов
         bool set_controlParams(); //Установка текущих параметров управления
         void set_target(PointMass* _target); //Установка цели
         PointMass* get_target(); //Выдача указателя на цель
