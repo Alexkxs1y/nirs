@@ -39,7 +39,7 @@ double MissileEasyAerodynamic::get_cz_delta(double M, double beta) const{
 }
 
 double MissileEasyAerodynamic::get_mz_wz(double M) const{
-    return - 0.9 * M;
+    return - 0.07 ;
 }
 
 double MissileEasyAerodynamic::get_mz_a(double M) const{
@@ -75,15 +75,15 @@ double MissileEasyAerodynamic::get_cz(double M, std::vector<double> &alpha_beta,
 }
 
 double MissileEasyAerodynamic::get_mx(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas, std::vector<double> &w, double l_div_Vabs) const{
-    return -0.05 * w[0] + 0.1 * deltas[0]; 
+    return -0.0001 * w[0] * 0 + 0.0007 * deltas[0]; 
 }
 
 double MissileEasyAerodynamic::get_my(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas, std::vector<double> &w, double l_div_Vabs) const{
-    return (get_my_wy(M) * w[1] + get_my_b(M) * alpha_beta[1] + get_my_delta(M, alpha_beta[1]) * deltas[1]); 
+    return (get_my_wy(M) * w[1] +   0.01 * get_my_b(M) * alpha_beta[1] + 0.005 * get_my_delta(M, alpha_beta[1]) * deltas[1]); 
 }
 
 double MissileEasyAerodynamic::get_mz(double M, std::vector<double> &alpha_beta, std::vector<double> &deltas, std::vector<double> &w, double l_div_Vabs) const{
-    return (get_mz_a(M) * alpha_beta[0] + get_mz_wz(M) * w[2] + get_mz_delta(M, alpha_beta[0]) * deltas[2]);
+    return ( 0.01 * get_mz_a(M) * alpha_beta[0] + get_mz_wz(M) * w[2] + 0.005 * get_mz_delta(M, alpha_beta[0]) * deltas[2]);
 }
 
 double MissileEasyAerodynamic::get_mStab() const{

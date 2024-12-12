@@ -219,7 +219,7 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
     missile -> set_state(stateVector_mis, ryp, w);
     target -> set_state(stateVector_tar);
 
-    double h_step = 200;
+    double h_step = 500;
     bool outOfZone = false;
 
     vector< vector<double> > _noEscapeSurface(numPoints, vector<double>(2));
@@ -251,9 +251,10 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
 
     outOfZone = false;
 
+        stateVector_tar[1] = stateVector_mis[1];
     //От плоскости ракеты делаем шаги вниз
     while(!outOfZone){
-        stateVector_tar[1] = stateVector_mis[1] - h_step;
+        stateVector_tar[1] -= h_step;
         target -> set_state(stateVector_tar);
         _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, approxPointX, approxPointZ, dt, numPoints);
         
