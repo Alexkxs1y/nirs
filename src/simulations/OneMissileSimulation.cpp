@@ -3,6 +3,7 @@
 #include "../../include/models/Target.hpp"
 #include "../../include/models/Missile.hpp"
 #include "../../include/utils/MyMath.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -137,11 +138,16 @@ vector<double> oneMissileSimulation(Missile* missile, Target* target, double dt)
             return {0, 0, 0, 0, -1};
         }
 
+        //Интегрирование Эйлером
+        /*
         missile -> set_controlParams();
         target -> set_controlParams();
         missile -> STEP(dt);
         target -> STEP(dt);
-        //RK_STEP(missile, target, dt);
+        */
+
+        //Интегрирование методом Рунге-Кутта
+        RK_STEP(missile, target, dt);
         
         t += dt;
         r_missile = missile -> get_r();

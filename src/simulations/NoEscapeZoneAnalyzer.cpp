@@ -12,8 +12,8 @@
 using namespace std;
 
 vector<double> luckyHitFinder(Missile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt){
-    double h = 500;
-    int i_max = 10;
+    double h = 500; //Значение от себя. Можно его пробовать менять......................................
+    int i_max = 40; //Значение от себя. Можно его пробовать менять......................................
     int i = 1;
 
     vector<double> missile_ryp = missile -> get_ryp();
@@ -65,7 +65,7 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
 
     vector<double> flight_res(5);
 
-    double h = 500;
+    double h = 500; //Значение от себя. Можно его пробовать менять................................
     double salt = 10; //Значение, чтобы сделать ненулевое начальное положение цели
     int i_max = 40; //Тут рандом...................................................    
     int i = 0;
@@ -116,10 +116,11 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
 
 vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double approxPointX, double approxPointZ, double dt, int numPoints){
 
-    ofstream out;          
+    //Создание файла для записи плоскости не ухода
+    /*ofstream out;          
     int hhh = int(target->get_y());
     string name = "res_" + to_string(hhh) + ".dat"; 
-          
+    */     
 
     vector< vector<double> > noEscapeSurface(numPoints, vector<double>(2));
     vector<double> hitPoint = hitPointFinder(missile, target, effectiveRadius, approxPointX, approxPointZ, dt);
@@ -138,7 +139,7 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
     
     vector<double> flightRes(5);
     int j = 1;
-    double h = 8000;
+    double h = 8000; //Значение от себя. Можно его пробовать менять......................................
     double missDistanse = 0;
     double searchAngle;
     double cos_i = 0;
@@ -157,7 +158,7 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
         target_stateVector[0] = hitPoint[hit_x];
         target_stateVector[2] = hitPoint[hit_z];
         missDistanse = 0;
-        h = 8000;
+        h = 8000; //Значение от себя. Можно его пробовать менять......................................
         isStepBack = false;
 
         while(abs(missDistanse - effectiveRadius) > tolerance){
@@ -187,10 +188,12 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
         }
         noEscapeSurface[i] = {target_stateVector[0], target_stateVector[2]};
         
-        out.open(name, ios::app);
+        //Для записи по (на каждой итерации) точки плоскости непопадания в файл
+        /*out.open(name, ios::app);
         out << noEscapeSurface[i][0] << ' ' << noEscapeSurface[i][1] << '\n';
-        out.close(); 
-        cout << noEscapeSurface[i][0] << ' ' << noEscapeSurface[i][1] << '\n';
+        out.close();*/ 
+
+        cout << noEscapeSurface[i][0] << ' ' << noEscapeSurface[i][1] << ' ' << missile_ryp[1] << '\n';
     }
 
     target -> set_state(target_stateVector_initial);
@@ -202,7 +205,7 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
 
 vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile, Target* target, double V_mis, double V_tar, double yaw_rel, double pitch_rel, double effectiveRadius, double tolerance, double dt, int numPoints){
     double y_mid = 6000; // Будем считать, что это высота, на которой находится ракета. Относительно неё будем варьировать высоту цели.
-    
+
     //НУ для движения цели и ракеты
     vector<double> stateVector_tar_initial = target -> get_stateVector();
     vector<double> stateVector_mis_initial = missile -> get_stateVector();
@@ -219,7 +222,7 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
     missile -> set_state(stateVector_mis, ryp, w);
     target -> set_state(stateVector_tar);
 
-    double h_step = 500;
+    double h_step = 500; //Значение от себя. Можно его пробовать менять......................................
     bool outOfZone = false;
 
     vector< vector<double> > _noEscapeSurface(numPoints, vector<double>(2));
@@ -240,6 +243,21 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
             approxPointX = 0;
             approxPointZ = 0;
         } else {
+            
+            //Запись плоскости невылета (на заднной относительно ракеты высоте) 
+            //принадлежащей конкретной зоне невылета (c определённо конфигурацией цель-ракета, 
+            //то есть относительного угла рысканья, тангажа, скорости цели и ракеты) в файл
+            /*
+            ofstream out;          
+            string name = "res_" + to_string(int(round(yaw_rel * 180 / M_PI))) + "_" + 
+                            to_string(int(round(pitch_rel * 180 / M_PI))) + "_" + 
+                            to_string(int(stateVector_tar[1])) + "_" + to_string(int(stateVector_mis[3])) + ".dat";      
+            out.open(name, ios::app);
+            for(int i = 0; i < numPoints; i++){
+                out << _noEscapeSurface[i][0] << ' ' << _noEscapeSurface[i][1] << '\n';
+            }
+            out.close();
+            */ 
             noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
             approxPointX = _noEscapeSurface[int(numPoints * 0.5)][0];
             approxPointZ = _noEscapeSurface[int(numPoints * 0.5)][1];
@@ -251,10 +269,9 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
 
     outOfZone = false;
 
-        stateVector_tar[1] = stateVector_mis[1];
+    stateVector_tar[1] = stateVector_mis[1] - h_step;
     //От плоскости ракеты делаем шаги вниз
     while(!outOfZone){
-        stateVector_tar[1] -= h_step;
         target -> set_state(stateVector_tar);
         _noEscapeSurface = noEscapeSurface(missile, target, effectiveRadius, tolerance, approxPointX, approxPointZ, dt, numPoints);
         
@@ -265,10 +282,27 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
             approxPointZ = 0;
 
         } else {
+            
+            //Запись плоскости невылета (на заднной относительно ракеты высоте) 
+            //принадлежащей конкретной зоне невылета (c определённо конфигурацией цель-ракета, 
+            //то есть относительного угла рысканья, тангажа, скорости цели и ракеты) в файл
+            /*
+            ofstream out;          
+            string name = "res_" + to_string(int(round(yaw_rel * 180 / M_PI))) + "_" + 
+                            to_string(int(round(pitch_rel * 180 / M_PI))) + "_" + 
+                            to_string(int(stateVector_tar[1])) + "_" + to_string(int(stateVector_mis[3])) + ".dat";      
+            out.open(name, ios::app);
+            for(int i = 0; i < numPoints; i++){
+                out << _noEscapeSurface[i][0] << ' ' << _noEscapeSurface[i][1] << '\n';
+            }
+            out.close(); 
+            */
             noEscapeZone.push_back( make_pair( stateVector_tar[1], _noEscapeSurface ) );
             approxPointX = _noEscapeSurface[int(numPoints * 0.5)][0];
             approxPointZ = _noEscapeSurface[int(numPoints * 0.5)][1];
+            //Для наблюдения за программой через кончоль
             cout<< "Высота: " << stateVector_tar[1] << ". За время: " << (double)(clock() - tStart)/CLOCKS_PER_SEC << '\n';
+            
             stateVector_tar[1] -= h_step;
             target -> set_state(stateVector_tar);
         }
