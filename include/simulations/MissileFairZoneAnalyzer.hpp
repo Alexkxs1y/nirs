@@ -15,4 +15,8 @@ std::vector<double> directionBound(Missile* missile, Target* target, double _yaw
 //Возвращает вектор пар: (высота, список точек зон ОВП)
 std::vector< std::vector<double> > missileFairZone(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints = 36);
 
+
+std::vector< std::vector<double> > crossTargetMissileFairZone(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints);
+
+
 #endif

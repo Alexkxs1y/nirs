@@ -5,6 +5,7 @@
 #include <fstream>
 #include <time.h>
 
+#include "../../include/utils/MyMath.hpp"
 #include "../../include/simulations/MissileFairZoneAnalyzer.hpp"
 
 #define MISSILE_DIR_STEP double(8000) //Длина начального шага для определения границы по направлению 
@@ -24,6 +25,7 @@ vector<double> directionBound(Missile* missile, Target* target, double _yaw, dou
     vector<double> cos_xyz = { cos(_pitch) * cos(_yaw), sin(_pitch), cos(_pitch) * sin(_yaw) };  
     bool isStepBack = false;
     bool inAir = true;
+    bool beforeTarget = true;
     while(abs(missDistanse - effectiveRadius) > tolerance){
         if(missDistanse < effectiveRadius){
             if(isStepBack){
@@ -48,12 +50,17 @@ vector<double> directionBound(Missile* missile, Target* target, double _yaw, dou
             }
             isStepBack = true;                    
         }
+        if(missile_stateVector[0] >= target -> get_stateVector()[0]){
+            missile_stateVector[0] = target -> get_stateVector()[0] - 0.1;
+            beforeTarget = false;
+        }
         missile -> set_state(missile_stateVector, missile_ryp_initial, missile_w_initial);
         flightRes = oneMissileSimulation(missile, target, dt);
         missDistanse = flightRes[0];
         if(flightRes[4] < 0){
             missDistanse = 2 * effectiveRadius; //Костыль при нехватке скорости.......................
         }
+        if(!beforeTarget && missDistanse < effectiveRadius) break;
         if(!inAir && missDistanse < effectiveRadius) break;
         inAir = true;
     }
@@ -86,7 +93,7 @@ vector< vector<double> > missileFairZone(Missile* missile, Target* target, doubl
     vector<double> bound(3);
     vector< vector<double> > missileFairZone(0);
 
-    bound = directionBound(missile, target, _yaw, M_PI * 0.5, effectiveRadius, tolerance, dt);
+    bound = directionBound(missile, target, _yaw, 0 * M_PI * 0.5, effectiveRadius, tolerance, dt);
     missileFairZone.push_back(bound);
     out.open(name, ios::app);
     out << bound[0] << ' ' << bound[1] << ' ' << bound[2] << ' ' << '\n';
@@ -115,4 +122,90 @@ vector< vector<double> > missileFairZone(Missile* missile, Target* target, doubl
     out.close();
 
     return missileFairZone;
+}
+
+
+vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints){
+    
+    ofstream out;          
+    string name = "crossZone.dat";  
+    
+    vector<double> missileState = missile -> get_stateVector();
+
+    vector<double> flyghtRes_1 = oneMissileSimulation(missile, target_1, dt);
+    vector<double> flyghtRes_2 = oneMissileSimulation(missile, target_2, dt);
+
+    //Если из текущий точки поражение совершить невозможно
+    //Функция прекращает работы и делает вывод пары {-1, {{-1,-1}}}
+    if(flyghtRes_1[0] > effectiveRadius || flyghtRes_1[4] < 0){    
+        return { {-1, -1} };        
+    }
+
+    if(flyghtRes_2[0] > effectiveRadius || flyghtRes_2[4] < 0){    
+        return { {-1, -1} };        
+    }
+
+    double _yaw = 0, _pitch = 0;
+    vector<double> bound_1(3);
+    vector<double> bound_2(3);
+    vector< vector<double> > crossTargetMissileFairZone(0);
+
+    bound_1 = directionBound(missile, target_1, _yaw, M_PI * 0.5, effectiveRadius, tolerance, dt);
+    bound_2 = directionBound(missile, target_2, _yaw, M_PI * 0.5, effectiveRadius, tolerance, dt);
+    
+    if(range(missileState, bound_1) < range(missileState, bound_2)){
+        crossTargetMissileFairZone.push_back(bound_1);
+        out.open(name, ios::app);
+        out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
+        out << '\n';
+        out.close();
+    } else {
+        crossTargetMissileFairZone.push_back(bound_2);
+        out.open(name, ios::app);
+        out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
+        out << '\n';
+        out.close();
+    }
+
+    for(int i = 1; i < int(numPoints * 0.5); i ++){
+        for(int j = 0; j < numPoints; j ++){
+            _yaw = 2 * double(j) * M_PI / double(numPoints);
+            _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
+            bound_1 = directionBound(missile, target_1, _yaw, _pitch, effectiveRadius, tolerance, dt);
+            bound_2 = directionBound(missile, target_2, _yaw, _pitch, effectiveRadius, tolerance, dt);
+            if(range(missileState, bound_1) < range(missileState, bound_2)){
+                crossTargetMissileFairZone.push_back(bound_1);
+                out.open(name, ios::app);
+                out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
+                out.close();
+            } else {
+                crossTargetMissileFairZone.push_back(bound_2);
+                out.open(name, ios::app);
+                out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
+                out.close();
+            }
+        }
+        out.open(name, ios::app);
+        out << '\n';
+        out.close();
+    }
+
+    bound_1 = directionBound(missile, target_1, _yaw, - M_PI * 0.5, effectiveRadius, tolerance, dt);
+    bound_2 = directionBound(missile, target_2, _yaw, - M_PI * 0.5, effectiveRadius, tolerance, dt);
+    
+    if(range(missileState, bound_1) < range(missileState, bound_2)){
+        crossTargetMissileFairZone.push_back(bound_1);
+        out.open(name, ios::app);
+        out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
+        out << '\n';
+        out.close();
+    } else {
+        crossTargetMissileFairZone.push_back(bound_2);
+        out.open(name, ios::app);
+        out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
+        out << '\n';
+        out.close();
+    }
+
+    return crossTargetMissileFairZone;     
 }
