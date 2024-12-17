@@ -19,4 +19,6 @@ std::vector< std::vector<double> > missileFairZone(Missile* missile, Target* tar
 std::vector< std::vector<double> > crossTargetMissileFairZone(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints);
 
 
+std::vector< std::vector<double> > fairTrajectoryDots(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints);
+
 #endif

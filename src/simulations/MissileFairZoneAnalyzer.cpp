@@ -73,9 +73,6 @@ vector<double> directionBound(Missile* missile, Target* target, double _yaw, dou
 }
 
 
-
-
-
 vector< vector<double> > missileFairZone(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints){
 
     //Создание файла для записи плоскости не ухода
@@ -208,4 +205,129 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
     }
 
     return crossTargetMissileFairZone;     
+}
+
+vector<double> findCentralDot(){}
+
+//Определяет границу допустимой зоны, начинает в заданной точке и шагает в заданном направлении
+vector<double> pointDirectionBound( Missile* missile, Target* target, double effectiveRadius,
+                                    double tolerance, vector<double>& point ,vector<double>& direction, double dt){
+    double step = MISSILE_DIR_STEP;
+    vector<double> missile_stateVector = point;
+    vector<double> missile_ryp_initial = missile -> get_ryp();
+    vector<double> missile_w_initial = missile -> get_w();
+    vector<double> missile_stateVector_initial = missile -> get_stateVector();
+    
+    vector<double> flightRes(5);
+    double missDistanse = 0; 
+    bool isStepBack = false;
+    bool inAir = true;
+    bool beforeTarget = true;
+    while(abs(missDistanse - effectiveRadius) > tolerance){
+        if(missDistanse < effectiveRadius){
+            if(isStepBack){
+                step *= 0.5;
+            }
+            if(step < 10) break; //Если совсем маленький шаг уже, то останавливаемся.
+            //Добавление шага по направляющим косинусам ко всем координатам начального положения            
+            for(int i = 0; i < direction.size(); i++){
+                missile_stateVector[i] += step * direction[i];
+            }
+            if(missile_stateVector[1] < 0){
+                double _step = missile_stateVector[1] / direction[1];
+                for(int i = 0; i < direction.size(); i++){
+                    missile_stateVector[i] -= _step * direction[i];
+                }
+                inAir = false;   
+            }
+        } else {
+            step *= 0.5;
+            for(int i = 0; i < direction.size(); i++){
+                missile_stateVector[i] -= step * direction[i];
+            }
+            isStepBack = true;                    
+        }
+        if(missile_stateVector[0] >= target -> get_stateVector()[0]){
+            missile_stateVector[0] = target -> get_stateVector()[0] - 0.1;
+            beforeTarget = false;
+        }
+        missile -> set_state(missile_stateVector, missile_ryp_initial, missile_w_initial);
+        flightRes = oneMissileSimulation(missile, target, dt);
+        missDistanse = flightRes[0];
+        if(flightRes[4] < 0){
+            missDistanse = 2 * effectiveRadius; //Костыль при нехватке скорости.......................
+        }
+        if(!beforeTarget && missDistanse < effectiveRadius) break;
+        if(!inAir && missDistanse < effectiveRadius) break;
+        inAir = true;
+    }
+
+    //cout << missile_stateVector[0] << ' ' << missile_stateVector[1] << ' ' << missile_stateVector[2] << '\n';
+
+    missile -> set_state(missile_stateVector_initial, missile_ryp_initial, missile_w_initial);
+
+    return missile_stateVector;
+}
+
+
+vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target* target_1, Target* target_2, double effectiveRadius,
+                                                        double tolerance, vector<double>& direction, double step, double dt, int numPoints){
+    
+    vector< vector<double> > fairSurface(0);
+    vector<double> missileState = missile -> get_stateVector();
+    vector<double> hitPoint(3);
+
+    for(size_t i = 0; i < hitPoint.size(); i++){
+        hitPoint[i] = missileState[i] +  step * direction[i];
+    }
+
+    //Вектор перпендикулярный к направлению шагов
+    double z = -(direction[0] + direction[1]) / direction[2];
+    vector<double> normToDirection = {1, 1, z};
+    normalize(normToDirection);
+
+    double searchAngle = 0;
+    vector<double> searchDirection(3);
+    vector<double> bound_1(3);
+    vector<double> bound_2(3);
+    
+    for(size_t i = 0; i < numPoints; i ++){
+        searchAngle = 2 * M_PI * double(i) / double(numPoints);
+        searchDirection = rotate(normToDirection, direction, searchAngle);
+        bound_1 = pointDirectionBound(missile, target_1, effectiveRadius, tolerance, hitPoint, searchDirection, dt);
+        bound_2 = pointDirectionBound(missile, target_2, effectiveRadius, tolerance, hitPoint, searchDirection, dt);
+        if(range(hitPoint, bound_1) < range(hitPoint, bound_2)){
+            fairSurface.push_back(bound_1);
+        } else {
+            fairSurface.push_back(bound_2);
+        }
+    }
+    return fairSurface;
+}
+
+vector< vector<double> > fairTrajectoryDots(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt, int numPoints){
+    vector< vector<double> > fairTrajectoryDots(0);
+    
+    int nMNK = 10; //Количество точек, используемых для прогноза траектории
+
+    vector< vector<double> > crossTargetFairZone = crossTargetMissileFairZone(missile, target_1, target_2, effectiveRadius, tolerance, dt, numPoints);
+    vector<double> lastPoint = nearesPointFromSample(target_1 -> get_stateVector(), target_2 -> get_stateVector(), crossTargetFairZone);
+
+    vector<double> missileState = missile -> get_stateVector();
+    
+    //Вектор от ракеты до ближайшей к целям точке, принадежащей поверхности допустимой зоны положения ракеты.
+    vector<double> direction(3);
+    for(size_t i = 0; i < direction.size(); i ++){
+        direction[i] = lastPoint[i] - missileState[i];
+    }
+    normalize(direction);
+
+    //Определение максимальной дальности полётаза время постоянства траектории. 
+    double maxLength = missile -> get_Vabs() * reGuidanceTime;
+    double step = 0;
+
+    for(size_t i = 1; i <= nMNK; i ++){
+        step = maxLength * double(i) / double(nMNK);
+
+    }
 }
