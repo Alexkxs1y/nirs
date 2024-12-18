@@ -2,3 +2,4 @@ tests/
 *.dat
 .vscode
 fitting/
+missileFairZoneTesting/

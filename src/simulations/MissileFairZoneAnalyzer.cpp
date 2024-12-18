@@ -69,7 +69,12 @@ vector<double> directionBound(Missile* missile, Target* target, double _yaw, dou
 
     missile -> set_state(missile_stateVector_initial, missile_ryp_initial, missile_w_initial);
 
-    return missile_stateVector;
+    vector<double> bound(3);
+    for(size_t i = 0; i < bound.size(); i++){
+        bound[i] = missile_stateVector[i];
+    }
+
+    return bound;
 }
 
 
@@ -207,13 +212,15 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
     return crossTargetMissileFairZone;     
 }
 
-vector<double> findCentralDot(){}
 
 //Определяет границу допустимой зоны, начинает в заданной точке и шагает в заданном направлении
 vector<double> pointDirectionBound( Missile* missile, Target* target, double effectiveRadius,
-                                    double tolerance, vector<double>& point ,vector<double>& direction, double dt){
+                                    double tolerance, vector<double>& point ,vector<double>& searchDirection, double dt){
     double step = MISSILE_DIR_STEP;
-    vector<double> missile_stateVector = point;
+    vector<double> missile_stateVector = missile -> get_stateVector();
+    for(size_t i = 0; i < point.size(); i ++){
+        missile_stateVector[i] = point[i];
+    }
     vector<double> missile_ryp_initial = missile -> get_ryp();
     vector<double> missile_w_initial = missile -> get_w();
     vector<double> missile_stateVector_initial = missile -> get_stateVector();
@@ -230,20 +237,20 @@ vector<double> pointDirectionBound( Missile* missile, Target* target, double eff
             }
             if(step < 10) break; //Если совсем маленький шаг уже, то останавливаемся.
             //Добавление шага по направляющим косинусам ко всем координатам начального положения            
-            for(int i = 0; i < direction.size(); i++){
-                missile_stateVector[i] += step * direction[i];
+            for(int i = 0; i < searchDirection.size(); i++){
+                missile_stateVector[i] += step * searchDirection[i];
             }
             if(missile_stateVector[1] < 0){
-                double _step = missile_stateVector[1] / direction[1];
-                for(int i = 0; i < direction.size(); i++){
-                    missile_stateVector[i] -= _step * direction[i];
+                double _step = missile_stateVector[1] / searchDirection[1];
+                for(int i = 0; i < searchDirection.size(); i++){
+                    missile_stateVector[i] -= _step * searchDirection[i];
                 }
                 inAir = false;   
             }
         } else {
             step *= 0.5;
-            for(int i = 0; i < direction.size(); i++){
-                missile_stateVector[i] -= step * direction[i];
+            for(int i = 0; i < searchDirection.size(); i++){
+                missile_stateVector[i] -= step * searchDirection[i];
             }
             isStepBack = true;                    
         }
@@ -266,7 +273,12 @@ vector<double> pointDirectionBound( Missile* missile, Target* target, double eff
 
     missile -> set_state(missile_stateVector_initial, missile_ryp_initial, missile_w_initial);
 
-    return missile_stateVector;
+    vector<double> bound(3);
+    for(size_t i = 0; i < bound.size(); i++){
+        bound[i] = missile_stateVector[i];
+    }
+
+    return bound;
 }
 
 
@@ -282,8 +294,20 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
     }
 
     //Вектор перпендикулярный к направлению шагов
-    double z = -(direction[0] + direction[1]) / direction[2];
-    vector<double> normToDirection = {1, 1, z};
+    vector<double> normToDirection(3);
+    if(direction[2] != 0){
+        double z = -(direction[0] + direction[1]) / direction[2];
+        normToDirection = {1, 1, z};
+    } else {
+        if(direction[1] != 0){
+            double y = -(direction[0] + direction[2]) / direction[1];
+            normToDirection = {1, y, 1};
+        } else {
+            double x = -(direction[1] + direction[2]) / direction[0];
+            normToDirection = {x, 1, 1};
+        }
+    }
+    
     normalize(normToDirection);
 
     double searchAngle = 0;
@@ -298,14 +322,16 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
         bound_2 = pointDirectionBound(missile, target_2, effectiveRadius, tolerance, hitPoint, searchDirection, dt);
         if(range(hitPoint, bound_1) < range(hitPoint, bound_2)){
             fairSurface.push_back(bound_1);
+            cout << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << '\n';
         } else {
             fairSurface.push_back(bound_2);
+            cout << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << '\n';
         }
     }
     return fairSurface;
 }
 
-vector< vector<double> > fairTrajectoryDots(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt, int numPoints){
+/*vector< vector<double> > fairTrajectoryDots(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt, int numPoints){
     vector< vector<double> > fairTrajectoryDots(0);
     
     int nMNK = 10; //Количество точек, используемых для прогноза траектории
@@ -330,4 +356,4 @@ vector< vector<double> > fairTrajectoryDots(Missile* missile, Target* target_1, 
         step = maxLength * double(i) / double(nMNK);
 
     }
-}
+}*/

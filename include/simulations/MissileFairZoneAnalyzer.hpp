@@ -21,4 +21,10 @@ std::vector< std::vector<double> > crossTargetMissileFairZone(Missile* missile, 
 
 std::vector< std::vector<double> > fairTrajectoryDots(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints);
 
+std::vector<double> pointDirectionBound( Missile* missile, Target* target, double effectiveRadius,
+                                    double tolerance, std::vector<double>& point , std::vector<double>& searchDirection, double dt);
+
+std::vector< std::vector<double> > perpendToVectorFairSurface(    Missile* missile, Target* target_1, Target* target_2, double effectiveRadius,
+                                                        double tolerance, std::vector<double>& direction, double step, double dt, int numPoints);
+
 #endif
