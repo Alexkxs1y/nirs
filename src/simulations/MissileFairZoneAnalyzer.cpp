@@ -9,7 +9,9 @@
 #include "../../include/simulations/MissileFairZoneAnalyzer.hpp"
 
 #define MISSILE_DIR_STEP double(8000) //Длина начального шага для определения границы по направлению 
-#define NUM_OF_MNK_POINTS 10 //число точек, используемых для аппроксимации траектории
+#define NUM_OF_MNK_POINTS 10 //Число точек, используемых для аппроксимации траектории
+#define NUM_FAIR_ZONE_POINTS 36 //Число которое показывает шаг угла при построении допустимой зоны ракеты dAnngle = 2 * M_PI / NUM_FAIR_ZONE_POINTS
+#define NUM_SURFACE_POINT 36 //Число которое показываетшаг угла при построении допустимого положения ракеты в плоскости dAnngle = 2 * M_PI / NUM_SURFACE_POINT
 
 using namespace std;
 
@@ -79,7 +81,8 @@ vector<double> directionBound(Missile* missile, Target* target, double _yaw, dou
 }
 
 
-vector< vector<double> > missileFairZone(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt, int numPoints){
+vector< vector<double> > missileFairZone(Missile* missile, Target* target, double effectiveRadius, double tolerance, double dt){
+    int numPoints = NUM_FAIR_ZONE_POINTS;
 
     //Создание файла для записи плоскости не ухода
     ofstream out;          
@@ -128,11 +131,13 @@ vector< vector<double> > missileFairZone(Missile* missile, Target* target, doubl
 }
 
 
-vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints){
+vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt){
     
     ofstream out;          
     string name = "crossZone_1912.dat";  
     
+    int numPoints = NUM_FAIR_ZONE_POINTS;
+
     vector<double> missileState = missile -> get_stateVector();
     vector<double> missileR = {missileState[0], missileState[1], missileState[2]};
 
@@ -285,10 +290,11 @@ vector<double> pointDirectionBound( Missile* missile, Target* target, double eff
 
 
 vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target* target_1, Target* target_2, double effectiveRadius,
-                                                        double tolerance, vector<double>& direction, double step, double dt, int numPoints){
-    
+                                                        double tolerance, vector<double>& direction, double step, double dt){
     ofstream out;          
     string name = "perpend" + to_string(step) + ".dat";
+
+    int numPoints = NUM_SURFACE_POINT;
 
     vector< vector<double> > fairSurface(0);
     vector<double> missileState = missile -> get_stateVector();
@@ -345,7 +351,7 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
 }
 
 
-vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt, int numPoints){
+vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt){
     ofstream out;          
     string name = "fairPoints.dat";
     
@@ -353,7 +359,7 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
     
     int nMNK = NUM_OF_MNK_POINTS; //Количество точек, используемых для прогноза траектории
 
-    vector< vector<double> > crossTargetFairZone = crossTargetMissileFairZone(missile, target_1, target_2, effectiveRadius, tolerance, dt, numPoints);
+    vector< vector<double> > crossTargetFairZone = crossTargetMissileFairZone(missile, target_1, target_2, effectiveRadius, tolerance, dt);
     
     //Определение ближайщей к целям точки области возможных положений
     vector<double> target_1R = target_1 -> get_stateVector();
@@ -387,7 +393,7 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
     
     for(size_t i = 0; i < nMNK; i ++){
         step = maxLength * double(i) / double(nMNK);
-        fairSurface = perpendToVectorFairSurface(missile, target_1, target_2, effectiveRadius, tolerance, direction, step, dt, numPoints);
+        fairSurface = perpendToVectorFairSurface(missile, target_1, target_2, effectiveRadius, tolerance, direction, step, dt);
         fairPoint = findFarthestPointInPlane(fairSurface, fairSurface[0], direction);
         fairTrajectoryPoints.push_back(fairPoint);
         out.open(name, ios::app);
