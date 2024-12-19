@@ -5,7 +5,7 @@
 #include <iostream>
 #include "../../include/utils/MyMath.hpp"
 
-#define GRIDSIZE 1000;
+#define GRIDSIZE 1000
 
 using namespace std;
 
@@ -193,7 +193,6 @@ bool isPointInsidePolygon2D(const vector<double>& point, const vector<vector<dou
     return crossings % 2 == 1;
 }
 
-// Определение максимально удаленной от границы точки
 vector<double> findFarthestPointInPlane(const vector<vector<double>>& polygon, const vector<double>& planePoint, const vector<double>& normal) {
     int gridSize = GRIDSIZE;
 
@@ -248,4 +247,99 @@ vector<double> findFarthestPointInPlane(const vector<vector<double>>& polygon, c
 
     // Преобразуем результат обратно в глобальную СК
     return toGlobal3D(farthestPointLocal, planePoint, u, v);
+}
+
+vector<double> solveLinearSystem(const vector<vector<double>>& A, const vector<double>& b) {
+    int n = A.size();
+    vector<vector<double>> mat(A);
+    vector<double> rhs(b);        
+
+    for (int i = 0; i < n; ++i) {
+        int maxRow = i;
+        for (int k = i + 1; k < n; ++k) {
+            if (abs(mat[k][i]) > abs(mat[maxRow][i])) {
+                maxRow = k;
+            }
+        }
+        swap(mat[i], mat[maxRow]);
+        swap(rhs[i], rhs[maxRow]);
+
+        if (abs(mat[i][i]) < 1e-10) {
+            throw runtime_error("Matrix is singular or nearly singular!");
+        }
+
+        for (int k = i + 1; k < n; ++k) {
+            double factor = mat[k][i] / mat[i][i];
+            for (int j = i; j < n; ++j) {
+                mat[k][j] -= factor * mat[i][j];
+            }
+            rhs[k] -= factor * rhs[i];
+        }
+    }
+
+    vector<double> x(n, 0);
+    for (int i = n - 1; i >= 0; --i) {
+        x[i] = rhs[i];
+        for (int j = i + 1; j < n; ++j) {
+            x[i] -= mat[i][j] * x[j];
+        }
+        x[i] /= mat[i][i];
+    }
+
+    return x;
+}
+
+vector<double> fitCubicPolynomial(const vector<vector<double>>& points, int xIndex, int yIndex) {
+    int n = points.size();
+    if (n < 4) {
+        throw runtime_error("At least 4 points are needed to fit a cubic polynomial.");
+    }
+
+    double Sx = 0, Sx2 = 0, Sx3 = 0, Sx4 = 0, Sx5 = 0, Sx6 = 0;
+    double Sy = 0, Sxy = 0, Sx2y = 0, Sx3y = 0;
+
+    for (const auto& point : points) {
+        double xi = point[xIndex];
+        double yi = point[yIndex];
+        double xi2 = xi * xi;
+        double xi3 = xi2 * xi;
+        double xi4 = xi3 * xi;
+        double xi5 = xi4 * xi;
+        double xi6 = xi5 * xi;
+
+        Sx += xi;
+        Sx2 += xi2;
+        Sx3 += xi3;
+        Sx4 += xi4;
+        Sx5 += xi5;
+        Sx6 += xi6;
+
+        Sy += yi;
+        Sxy += xi * yi;
+        Sx2y += xi2 * yi;
+        Sx3y += xi3 * yi;
+    }
+
+    vector<vector<double>> A = {
+        {static_cast<double>(n), Sx, Sx2, Sx3},
+        {Sx, Sx2, Sx3, Sx4},
+        {Sx2, Sx3, Sx4, Sx5},
+        {Sx3, Sx4, Sx5, Sx6}
+    };
+
+    vector<double> b = {Sy, Sxy, Sx2y, Sx3y};
+
+    return solveLinearSystem(A, b);
+}
+
+pair<vector<double>, vector<double>> fitCubicPolynomials3D(const vector<vector<double>>& points) {
+    if (points.empty() || points[0].size() < 3) {
+        throw runtime_error("Input points must be non-empty and contain at least three coordinates per point (x, y, z).");
+    }
+
+    // Fit cubic polynomials for y(x) and z(x)
+    vector<double> yCoeffs = fitCubicPolynomial(points, 0, 1); // y as a function of x
+    vector<double> zCoeffs = fitCubicPolynomial(points, 0, 2); // z as a function of x
+
+    return {yCoeffs, zCoeffs};
 }

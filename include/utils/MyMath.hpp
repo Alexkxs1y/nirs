@@ -65,4 +65,19 @@ bool isPointInsidePolygon2D(const std::vector<double>& point, const std::vector<
 std::vector<double> findFarthestPointInPlane(   const std::vector< std::vector<double> >& polygon, const std::vector<double>& planePoint, 
                                                 const std::vector<double>& normal);
 
+// Решение СЛАУ Ax = b методом Гаусса
+std::vector<double> solveLinearSystem(const std::vector< std::vector<double> >& A, const std::vector<double>& b);
+
+// МНК для кубического приближения
+// points - набор точек
+// xIndex - индекс того по какой координате точки строить зависимость
+// yIndex - индекс того для какой координаты точки строить зависимость
+// В результате будут выданы коэффициенты для уравнения y(x)
+std::vector<double> fitCubicPolynomial(const std::vector< std::vector<double> >& points, int xIndex, int yIndex);
+
+// Производит МНК для y и z относительно x
+// points - набор точек, по которым необходимо произвести аппроксимацию
+std::pair< std::vector<double>, std::vector<double> > fitCubicPolynomials3D(const std::vector< std::vector<double> >& points);
+
+
 #endif

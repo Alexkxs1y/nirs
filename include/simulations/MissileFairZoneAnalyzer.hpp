@@ -19,7 +19,7 @@ std::vector< std::vector<double> > missileFairZone(Missile* missile, Target* tar
 std::vector< std::vector<double> > crossTargetMissileFairZone(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints);
 
 
-std::vector< std::vector<double> > fairTrajectoryDots(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt, int numPoints);
+std::vector< std::vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt, int numPoints);
 
 std::vector<double> pointDirectionBound( Missile* missile, Target* target, double effectiveRadius,
                                     double tolerance, std::vector<double>& point , std::vector<double>& searchDirection, double dt);
