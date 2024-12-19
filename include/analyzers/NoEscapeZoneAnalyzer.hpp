@@ -3,7 +3,7 @@
 
 #include <math.h>
 #include <vector>
-#include "OneMissileSimulation.hpp"
+#include "../simulations/OneMissileSimulation.hpp"
 
 //Находит точку принадлежащую плоскости достижимости на высоте цели
 std::vector<double> hitPointFinder(Missile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt);

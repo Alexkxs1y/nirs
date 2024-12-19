@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Target::Target(): n_xyz(vector<double>(3)), targetGuidance(0), pursuer(0), nUpToDate(false){}
+Target::Target(): n_xyz(vector<double>(3)), targetGuidance(0), pursuers(1), nUpToDate(false){}
 
 Target::~Target(){}
 
@@ -20,7 +20,7 @@ bool Target::init(double _m, vector<double>& _stateVector, double _n_max,
     }
     n_max = _n_max;
     targetGuidance = _targetGuidance;
-    pursuer = _pursuer;
+    pursuers[0] = _pursuer;
     return true;
 }
 
@@ -29,7 +29,7 @@ bool Target::set_controlParams(){
         cout << "Ошибка. Повторная установка парметров управления целью\n";
         return false;
     }
-    vector<double> guidanceSignal = targetGuidance->get_GuidanceSignal(this, pursuer);
+    vector<double> guidanceSignal = targetGuidance->get_GuidanceSignal(this, pursuers);
     for(int i = 0; i < n_xyz.size(); i++){
         n_xyz[i] = guidanceSignal[i] * n_max;
     }
@@ -38,7 +38,13 @@ bool Target::set_controlParams(){
 }
 
 void Target::set_pursuer(PointMass* _pursuer){
-    pursuer = _pursuer;
+    pursuers.resize(1);
+    pursuers[0] = _pursuer;
+}
+
+void Target::set_pursuer(vector<PointMass*> _pursuers){
+    pursuers.resize(_pursuers.size());
+    pursuers = _pursuers;
 }
 
 bool Target::STEP(double dt){
@@ -71,8 +77,8 @@ vector<double> Target::get_n_xyz() const{
     return n_xyz;
 }
 
-PointMass* Target::get_pursuer() const{
-    return pursuer;
+vector<PointMass*> Target::get_pursuers() const{
+    return pursuers;
 }
 
 bool Target::set_actualForceAndTorques(){

@@ -8,13 +8,13 @@
 using namespace std;
 
 Missile::Missile(): deltas(vector<double>(3)), missileAerodynamic(0), missileStabilization(0),
-                    missileGuidance(0), target(0), deltaUpToDate(false){};
+                    missileGuidance(0), targets(1), deltaUpToDate(false){};
 
 Missile::~Missile(){}
 
 bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J, vector<double>& _roll_yaw_pitch, vector<double>& _w,
                     double _l, double _d, double _delta_max, IAerodynamic* _missileAerodynamic,
-                    MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target
+                    MissileStabilization* _missileStabilization, IGuidance* _missileGuidance, PointMass* _target
                     ){
     if(!RigidBody::init(_m, _stateVector, _J, _roll_yaw_pitch, _w)){
         cout<<"Ошибка произошла при инициализации ракеты\n";
@@ -24,7 +24,7 @@ bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J,
     missileAerodynamic = _missileAerodynamic;
     missileStabilization = _missileStabilization;
     missileGuidance = _missileGuidance;
-    target = _target;
+    targets[0] = _target;
     l = _l;
     d = _d;
     return true;
@@ -35,7 +35,7 @@ bool Missile::set_controlParams(){
         cout<<"Параметры управления уже были установлены на этом шаге\n";
         return false;
     }
-    vector<double> _guidanceSignal = missileGuidance->get_GuidanceSignal(this, target);
+    vector<double> _guidanceSignal = missileGuidance->get_GuidanceSignal(this, targets);
     vector<double> _deltas = missileStabilization->get_controlParams(this, _guidanceSignal);
     for(int i = 0; i < deltas.size(); i++){
         deltas[i] = _deltas[i];
@@ -48,7 +48,13 @@ bool Missile::set_controlParams(){
 }
 
 void Missile::set_target(PointMass* _target){
-    target = _target;
+    targets.resize(1);
+    targets[0] = _target;
+}
+
+void Missile::set_target(vector<PointMass*> _targets){
+    targets.resize(_targets.size());
+    targets = _targets;
 }
 
 bool Missile::STEP(double dt){
@@ -183,6 +189,6 @@ vector<double> Missile::get_deltas(){
     return deltas;
 }
 
-PointMass* Missile::get_target(){
-    return target;
+vector<PointMass*> Missile::get_targets(){
+    return targets;
 }

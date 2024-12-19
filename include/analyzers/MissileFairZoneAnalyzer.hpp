@@ -3,7 +3,7 @@
 
 #include <math.h>
 #include <vector>
-#include "OneMissileSimulation.hpp"
+#include "../simulations/OneMissileSimulation.hpp"
 
 //Поиск границы зоны допустимых мест пусков по направлению относительно НЗСК, где начало - положение ракеты,
 //а направление задают два угла _yaw, _pitch (!!!это не углы рысканья и тангажа, они так названы, потому что похожи по смылсу)

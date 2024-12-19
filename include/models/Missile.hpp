@@ -14,20 +14,22 @@ class Missile: public RigidBody{
         ~Missile();
         bool init(  double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w, 
                     double _l, double _d, double _delta_max, IAerodynamic* _missileAerodynamic,
-                    MissileStabilization* _missileStabilization, MissileGuidance* _missileGuidance, PointMass* _target = 0
+                    MissileStabilization* _missileStabilization, IGuidance* _missileGuidance, PointMass* _target = 0
                     );
         bool STEP(double dt) override;
         bool set_actualForceAndTorques(); //Установка сил и моментов
         bool set_controlParams(); //Установка текущих параметров управления
         void set_target(PointMass* _target); //Установка цели
-        PointMass* get_target(); //Выдача указателя на цель
+        void set_target(std::vector<PointMass*> _targets); //Установка целей
+        std::vector<PointMass*> get_targets(); //Выдача указателя на цель
         std::vector<double> get_deltas(); //Выдача параметров управления
 
     private:
         IAerodynamic* missileAerodynamic;
         MissileStabilization* missileStabilization;
-        MissileGuidance* missileGuidance;
-        PointMass* target;
+        IGuidance* missileGuidance;
+        //Набор целей, которых преследует ракеты(обычно 1 цель)
+        std::vector<PointMass*> targets;
         double l; //Длина ЛА
         double d; //Диаметр ЛА
         double delta_max; //Максимальное значение управляющих параметров

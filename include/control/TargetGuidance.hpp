@@ -10,11 +10,11 @@ class TargetGuidance: public IGuidance{
     public:
         TargetGuidance();
         ~TargetGuidance();
-        std::vector<double> get_GuidanceSignal(PointMass* target, PointMass* pursuer) override; //Возвращает требуемые угловые скорости (dTheta_dt, dPsi_dt)
+        std::vector<double> get_GuidanceSignal(PointMass* target, std::vector<PointMass*> pursuers) override; //Возвращает требуемые угловые скорости (dTheta_dt, dPsi_dt)
 
     private:
 
-        bool updateInformation(PointMass* target, PointMass* pursuer);// Инициализация полей класса в зависимости от цели и ракеты
+        bool updateInformation(PointMass* target, std::vector<PointMass*> pursuers);// Инициализация полей класса в зависимости от цели и ракеты
         double r_rel; //Расстояние между целью и ракетой
         std::vector<double> phi_hi; //Вектор проекций углов пеленга
         std::vector<double> V_rel; //Относительная скорость в НЗСК

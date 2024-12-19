@@ -10,8 +10,8 @@ TargetGuidance::TargetGuidance(): phi_hi(vector<double>(2)), V_rel(vector<double
 
 TargetGuidance::~TargetGuidance(){}
 
-vector<double> TargetGuidance::get_GuidanceSignal(PointMass* target, PointMass* pursuer){
-    if(!updateInformation(target, pursuer)){
+vector<double> TargetGuidance::get_GuidanceSignal(PointMass* target, vector<PointMass*> pursuers){
+    if(!updateInformation(target, pursuers)){
         return {0, 0, 0};
     }
     vector<double> signal(3);
@@ -19,7 +19,10 @@ vector<double> TargetGuidance::get_GuidanceSignal(PointMass* target, PointMass* 
     return signal;
 }
 
-bool TargetGuidance::updateInformation(PointMass* target, PointMass* pursuer){
+bool TargetGuidance::updateInformation(PointMass* target, vector<PointMass*> pursuers){
+    if(pursuers.size() > 1) throw runtime_error("Two or more pursuers on target wich controled by antiproportional guidance");
+    
+    PointMass* pursuer = pursuers[0];
     if(pursuer == 0){
         return false;
     }

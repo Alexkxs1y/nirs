@@ -147,11 +147,11 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
     //Если из текущий точки поражение совершить невозможно
     //Функция прекращает работы и делает вывод пары {-1, {{-1,-1}}}
     if(flyghtRes_1[0] > effectiveRadius || flyghtRes_1[4] < 0){    
-        return { {-1, -1} };        
+        return { {-1, -1, -1} };        
     }
 
     if(flyghtRes_2[0] > effectiveRadius || flyghtRes_2[4] < 0){    
-        return { {-1, -1} };        
+        return { {-1, -1, -1} };        
     }
 
     double _yaw = 0, _pitch = 0;
@@ -361,6 +361,10 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
 
     vector< vector<double> > crossTargetFairZone = crossTargetMissileFairZone(missile, target_1, target_2, effectiveRadius, tolerance, dt);
     
+    if(crossTargetFairZone[0][0] == -1 || crossTargetFairZone[0][1] == -1 || crossTargetFairZone[0][2] == -1){
+        return {{-1,-1,-1}};
+    }
+
     //Определение ближайщей к целям точки области возможных положений
     vector<double> target_1R = target_1 -> get_stateVector();
     vector<double> target_2R = target_2 -> get_stateVector();

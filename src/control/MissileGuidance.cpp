@@ -10,8 +10,8 @@ MissileGuidance::MissileGuidance(): K_guidance(vector<double>(2)), phi_hi(vector
 
 MissileGuidance::~MissileGuidance(){}
 
-vector<double> MissileGuidance::get_GuidanceSignal(PointMass* missile, PointMass* target){
-    if(!updateInformation(missile, target)){
+vector<double> MissileGuidance::get_GuidanceSignal(PointMass* missile, vector<PointMass*> targets){
+    if(!updateInformation(missile, targets)){
         return {0, 0};
     }
     vector<double> _d_eta_dt = d_eta_dt();
@@ -34,7 +34,9 @@ bool MissileGuidance::init(vector<double>& _K_guidance){
     return true;
 }
 
-bool MissileGuidance::updateInformation(PointMass* missile, PointMass* target){
+bool MissileGuidance::updateInformation(PointMass* missile, vector<PointMass*> targets){
+    if(targets.size() > 1) throw runtime_error("Two or more targets on missile wich controled by proportional guidance");
+    PointMass* target = targets[0];
     if(target == 0){
         return false;
     }

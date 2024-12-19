@@ -11,12 +11,12 @@ class MissileGuidance: public IGuidance{
         MissileGuidance();
         ~MissileGuidance();
         bool init(std::vector<double>& _K_guidance);
-        std::vector<double> get_GuidanceSignal(PointMass* missile, PointMass* target) override; //Возвращает требуемые угловые скорости (dTheta_dt, dPsi_dt)
+        std::vector<double> get_GuidanceSignal(PointMass* missile, std::vector<PointMass*> targets) override; //Возвращает требуемые угловые скорости (dTheta_dt, dPsi_dt)
 
     private:
         std::vector<double>  K_guidance; //Вектор коэффициентов пропорциональности
 
-        bool updateInformation(PointMass* missile, PointMass* target);// Инициализация полей класса в зависимости от цели и ракеты
+        bool updateInformation(PointMass* missile, std::vector<PointMass*> targets);// Инициализация полей класса в зависимости от цели и ракеты
         double r_rel; //Расстояние между целью и ракетой
         std::vector<double> phi_hi; //Вектор проекций углов пеленга
         std::vector<double> V_rel; //Относительная скорость в НЗСК
