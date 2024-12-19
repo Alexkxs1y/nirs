@@ -6,7 +6,7 @@
 #include <time.h>
 
 #include "../../include/utils/MyMath.hpp"
-#include "../../include/simulations/MissileFairZoneAnalyzer.hpp"
+#include "../../include/analyzers/MissileFairZoneAnalyzer.hpp"
 
 #define MISSILE_DIR_STEP double(8000) //Длина начального шага для определения границы по направлению 
 #define NUM_OF_MNK_POINTS 10 //Число точек, используемых для аппроксимации траектории

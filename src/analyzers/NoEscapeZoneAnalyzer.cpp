@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include "../../include/models/Target.hpp"
 #include "../../include/models/Missile.hpp"
-#include "../../include/simulations/NoEscapeZoneAnalyzer.hpp"
+#include "../../include/analyzers/NoEscapeZoneAnalyzer.hpp"
 #include "../../include/utils/MyMath.hpp"
 #include <iostream>
 #include <fstream>
