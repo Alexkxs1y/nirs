@@ -8,7 +8,7 @@
 class RigidBody: public PointMass{
     public:
         RigidBody();
-
+        RigidBody(RigidBody &_rigidBody);
         bool init(double _m, std::vector<double>& _stateVector, std::vector<double>& _J, std::vector<double>& _roll_yaw_pitch, std::vector<double>& _w);
 
         //Установка новго состояния твердого тела

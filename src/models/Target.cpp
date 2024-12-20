@@ -100,3 +100,7 @@ bool Target::set_actualForceAndTorques(){
     return true;
 }
 
+
+Target::Target(Target &_target){
+    
+}

@@ -4,17 +4,22 @@
 #include <vector>
 #include "../../include/models/Missile.hpp"
 #include "../../include/aerodynamics/Atmosphere_GOST_4401_81.hpp"
+#include "../../include/analyzers/MissileFairZoneAnalyzer.hpp"
+#include "../../include/utils/MyMath.hpp"
+
+#define EFFECTIVE_RAD double(15)
+#define TOLERANCE double(0.5)
 
 using namespace std;
 
 Missile::Missile(): deltas(vector<double>(3)), missileAerodynamic(0), missileStabilization(0),
-                    missileGuidance(0), targets(1), deltaUpToDate(false){};
+                    workGuidance(0), propGuidance(0), crossGuidance(0), targets(1), deltaUpToDate(false){};
 
 Missile::~Missile(){}
 
 bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J, vector<double>& _roll_yaw_pitch, vector<double>& _w,
                     double _l, double _d, double _delta_max, IAerodynamic* _missileAerodynamic,
-                    MissileStabilization* _missileStabilization, IGuidance* _missileGuidance, PointMass* _target
+                    MissileStabilization* _missileStabilization, IGuidance* _propGuidance, Target* _target
                     ){
     if(!RigidBody::init(_m, _stateVector, _J, _roll_yaw_pitch, _w)){
         cout<<"Ошибка произошла при инициализации ракеты\n";
@@ -23,7 +28,7 @@ bool Missile::init( double _m, vector<double>& _stateVector, vector<double>& _J,
     delta_max = _delta_max;
     missileAerodynamic = _missileAerodynamic;
     missileStabilization = _missileStabilization;
-    missileGuidance = _missileGuidance;
+    propGuidance = _propGuidance;
     targets[0] = _target;
     l = _l;
     d = _d;
@@ -35,7 +40,12 @@ bool Missile::set_controlParams(){
         cout<<"Параметры управления уже были установлены на этом шаге\n";
         return false;
     }
-    vector<double> _guidanceSignal = missileGuidance->get_GuidanceSignal(this, targets);
+    //КОСТЫЛИ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+    /////////////////////////////////////////////////////
+    vector<PointMass*> tags;
+    solveControlConflict(tags);
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    vector<double> _guidanceSignal = workGuidance->get_GuidanceSignal(this, tags);
     vector<double> _deltas = missileStabilization->get_controlParams(this, _guidanceSignal);
     for(int i = 0; i < deltas.size(); i++){
         deltas[i] = _deltas[i];
@@ -47,12 +57,12 @@ bool Missile::set_controlParams(){
     return true; 
 }
 
-void Missile::set_target(PointMass* _target){
+void Missile::set_target(Target* _target){
     targets.resize(1);
     targets[0] = _target;
 }
 
-void Missile::set_target(vector<PointMass*> _targets){
+void Missile::set_target(vector<Target*> _targets){
     targets.resize(_targets.size());
     targets = _targets;
 }
@@ -189,6 +199,55 @@ vector<double> Missile::get_deltas(){
     return deltas;
 }
 
-vector<PointMass*> Missile::get_targets(){
+vector<Target*> Missile::get_targets(){
     return targets;
+}
+
+void Missile::choose_Guidance(){
+    if(targets.size() == 2){
+        workGuidance = crossGuidance;
+    } else {
+        if(targets.size() == 1){
+            workGuidance = propGuidance;
+        } else{ 
+            throw runtime_error("Wrong number of targets!");
+        }
+    }
+
+    if(workGuidance == NULL) throw runtime_error("Flight without guidance!");
+}
+
+IGuidance* Missile::get_Guidance(){
+    return workGuidance;
+}
+
+void Missile::solveControlConflict(vector<PointMass*>& _tags){
+    choose_Guidance();
+    if((workGuidance == crossGuidance) && workGuidance -> needToUpdateData()){
+        vector< vector<double> > points = fairTrajectoryPoints(this, targets[0], targets[1], EFFECTIVE_RAD, TOLERANCE, 0.2, 1e-3);
+        if(points[0][0] == -1){
+            this -> set_target(targets[1]);
+            choose_Guidance();
+        } else {
+            if(points[0][1] == -1){
+                this -> set_target(targets[0]);
+                choose_Guidance();
+            } else {
+                pair<vector<double>, vector<double>> coefs = fitCubicPolynomials3D(points);
+                workGuidance -> updateData(coefs);
+            }
+        } 
+    }
+    _tags.resize(targets.size());
+    for(size_t i = 0; i < _tags.size(); i++){
+        _tags[i] = (PointMass*) targets[i];
+    }
+}
+
+ void Missile::set_propGuidance(IGuidance* _propGuidance){
+    propGuidance = _propGuidance;
+ }
+
+void Missile::set_crossGuidance(IGuidance* _crossGuidance){
+    crossGuidance = _crossGuidance;
 }

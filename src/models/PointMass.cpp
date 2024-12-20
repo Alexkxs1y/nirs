@@ -198,3 +198,10 @@ bool PointMass::STEP(double dt, std::vector<double> dr_dt, std::vector<double> d
     forcesUpToDate = false;
     return true;
 }
+
+PointMass::PointMass(PointMass &_pointMass){
+    std::vector<double> stateVector; //Вектор состояния (x, y, z, Vx, Vy, Vz)
+    std::vector<double> forces; //Вектор сил (Fx, Fy, Fz)
+    double m; //Масса
+    bool forcesUpToDate; //Флаг на проверку того, что после вызова шага были обновлены силы
+}

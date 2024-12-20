@@ -125,3 +125,10 @@ vector<double> TargetGuidance::Transform_V_to_signal() const{
     
     return signal;
 }   
+
+bool TargetGuidance::needToUpdateData(){return true;}
+
+
+void TargetGuidance::updateData(std::pair<std::vector<double>, std::vector<double>>& data){
+    cout <<"Я ВНУТРИ НАВЕДЕНИЯ ЦЕЛИ"<< '\n';
+}

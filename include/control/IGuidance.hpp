@@ -8,7 +8,9 @@
 class IGuidance{
     public:
         virtual ~IGuidance() = default ;
-        virtual std::vector<double> get_GuidanceSignal(PointMass* missile, std::vector<PointMass*> targets) = 0;
+        virtual std::vector<double> get_GuidanceSignal(PointMass* missile, std::vector< PointMass* > targets) = 0;
+        virtual bool needToUpdateData() = 0;
+        virtual void updateData(std::pair<std::vector<double>, std::vector<double>>& data) = 0;
 };
 
 

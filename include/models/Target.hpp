@@ -11,7 +11,7 @@ class Target: public PointMass{
         Target();
         ~Target();
         bool init(  double _m, std::vector<double>& _stateVector, double n_max,
-                     TargetGuidance* _targetGuidance, PointMass* _pursuer = 0
+                    TargetGuidance* _targetGuidance, PointMass* _pursuer = 0
                     );
         bool STEP(double dt) override;
         bool set_actualForceAndTorques();

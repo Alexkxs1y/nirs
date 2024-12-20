@@ -112,8 +112,9 @@ vector<double> oneMissileSimulation(Missile* missile, Target* target, double dt)
     vector<double> stateVector_missile = missile -> get_stateVector(); 
     vector<double> ryp_missile = missile -> get_ryp();
     vector<double> w_missile = missile -> get_w();
+    IGuidance* initialMissileGuidance = missile -> get_Guidance();
     vector<double> stateVector_target = target -> get_stateVector();
-    vector<PointMass*> initialMissilesTargets = missile -> get_targets();
+    vector<Target*> initialMissilesTargets = missile -> get_targets();
     vector<PointMass*> initialTargetPursuers = target -> get_pursuers(); 
 
     missile -> set_target(target);
@@ -157,6 +158,7 @@ vector<double> oneMissileSimulation(Missile* missile, Target* target, double dt)
 
     missile -> set_state(stateVector_missile, ryp_missile, w_missile);
     missile -> set_target(initialMissilesTargets);
+    missile ->choose_Guidance();
     target -> set_state(stateVector_target);
     target -> set_pursuer(initialTargetPursuers);
   

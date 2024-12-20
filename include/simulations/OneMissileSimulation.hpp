@@ -7,7 +7,7 @@
 #include "../models/Missile.hpp"
 #include "../models/Target.hpp"
 
-bool RK_STEP(double dt);
+bool RK_STEP(Missile* missile, Target* target, double dt);
 
 std::vector<double> oneMissileSimulation(Missile* missile, Target* target, double dt);
 

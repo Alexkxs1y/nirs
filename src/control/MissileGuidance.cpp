@@ -87,4 +87,10 @@ vector<double> MissileGuidance::d_eta_dt() const{
     return {V_phi / r_rel, V_hi / r_rel / cos(phi_hi[0]) };
 }
 
+bool MissileGuidance::needToUpdateData(){
+    return true;
+}
 
+void MissileGuidance::updateData(std::pair<std::vector<double>, std::vector<double>>& data){
+ cout <<"Я ВНУТРИ ПРОПОРЦИОНАЛЬНОГО НАВЕДЕНИЯ"<< '\n';
+}

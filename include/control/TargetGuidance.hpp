@@ -12,6 +12,8 @@ class TargetGuidance: public IGuidance{
         ~TargetGuidance();
         std::vector<double> get_GuidanceSignal(PointMass* target, std::vector<PointMass*> pursuers) override; //Возвращает требуемые угловые скорости (dTheta_dt, dPsi_dt)
 
+        bool needToUpdateData() override;
+        void updateData(std::pair<std::vector<double>, std::vector<double>>& data) override;
     private:
 
         bool updateInformation(PointMass* target, std::vector<PointMass*> pursuers);// Инициализация полей класса в зависимости от цели и ракеты

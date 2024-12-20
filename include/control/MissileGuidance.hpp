@@ -13,6 +13,9 @@ class MissileGuidance: public IGuidance{
         bool init(std::vector<double>& _K_guidance);
         std::vector<double> get_GuidanceSignal(PointMass* missile, std::vector<PointMass*> targets) override; //Возвращает требуемые угловые скорости (dTheta_dt, dPsi_dt)
 
+        bool needToUpdateData();
+        void updateData(std::pair<std::vector<double>, std::vector<double>>& data);
+
     private:
         std::vector<double>  K_guidance; //Вектор коэффициентов пропорциональности
 

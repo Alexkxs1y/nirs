@@ -8,7 +8,7 @@
 class PointMass{
     public:
         PointMass();
-
+        PointMass(PointMass &_pointMass);
         bool init(double _m, std::vector<double>& _stateVector);
 
         //Установка новго состояния точки

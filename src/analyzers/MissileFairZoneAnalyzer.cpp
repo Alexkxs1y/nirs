@@ -134,7 +134,7 @@ vector< vector<double> > missileFairZone(Missile* missile, Target* target, doubl
 vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt){
     
     ofstream out;          
-    string name = "crossZone_1912.dat";  
+    string name = "crossZone_"+ to_string(int(missile->get_x())) + ".dat";  
     
     int numPoints = NUM_FAIR_ZONE_POINTS;
 
@@ -147,18 +147,18 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
     //Если из текущий точки поражение совершить невозможно
     //Функция прекращает работы и делает вывод пары {-1, {{-1,-1}}}
     if(flyghtRes_1[0] > effectiveRadius || flyghtRes_1[4] < 0){    
-        return { {-1, -1, -1} };        
+        return { {-1, 0 } };        
     }
 
     if(flyghtRes_2[0] > effectiveRadius || flyghtRes_2[4] < 0){    
-        return { {-1, -1, -1} };        
+        return { { 0 , -1 } };        
     }
 
     double _yaw = 0, _pitch = 0;
     vector<double> bound_1(3);
     vector<double> bound_2(3);
     vector< vector<double> > crossTargetMissileFairZone(0);
-
+    cout << "ШАГ ПО ВРЕМЕНИ ПРИ АНАЛИЗУ: " << dt << '\n';
     bound_1 = directionBound(missile, target_1, _yaw, M_PI * 0.5, effectiveRadius, tolerance, dt);
     bound_2 = directionBound(missile, target_2, _yaw, M_PI * 0.5, effectiveRadius, tolerance, dt);
     
@@ -177,8 +177,8 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
     }
 
     for(int i = 1; i < int(numPoints * 0.5); i ++){
-        for(int j = 0; j < numPoints; j ++){
-            _yaw = 2 * double(j) * M_PI / double(numPoints);
+        for(int j = 0; j <= int(numPoints * 0.5); j ++){
+            _yaw =  M_PI * 0.5 - 2 * double(j) * M_PI / double(numPoints);
             _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
             bound_1 = directionBound(missile, target_1, _yaw, _pitch, effectiveRadius, tolerance, dt);
             bound_2 = directionBound(missile, target_2, _yaw, _pitch, effectiveRadius, tolerance, dt);
@@ -206,13 +206,11 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
         crossTargetMissileFairZone.push_back(bound_1);
         out.open(name, ios::app);
         out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
-        out << '\n';
         out.close();
     } else {
         crossTargetMissileFairZone.push_back(bound_2);
         out.open(name, ios::app);
         out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
-        out << '\n';
         out.close();
     }
 
@@ -292,7 +290,7 @@ vector<double> pointDirectionBound( Missile* missile, Target* target, double eff
 vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target* target_1, Target* target_2, double effectiveRadius,
                                                         double tolerance, vector<double>& direction, double step, double dt){
     ofstream out;          
-    string name = "perpend" + to_string(step) + ".dat";
+    string name = "perpend_"  +  to_string(int(missile->get_x())) + "_" + to_string(int(step))  +".dat";
 
     int numPoints = NUM_SURFACE_POINT;
 
@@ -335,14 +333,12 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
             fairSurface.push_back(bound_1);
             out.open(name, ios::app);
             out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
-            out << '\n';
             out.close();
             //cout << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << '\n';            
         } else {
             fairSurface.push_back(bound_2);
             out.open(name, ios::app);
             out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
-            out << '\n';
             out.close();
             //cout << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << '\n';
         }
@@ -353,7 +349,7 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
 
 vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt){
     ofstream out;          
-    string name = "fairPoints.dat";
+    string name = "fairPoints_" + to_string(int(missile->get_x()))+ ".dat";
     
     vector< vector<double> > fairTrajectoryPoints(0);
     
@@ -361,8 +357,12 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
 
     vector< vector<double> > crossTargetFairZone = crossTargetMissileFairZone(missile, target_1, target_2, effectiveRadius, tolerance, dt);
     
-    if(crossTargetFairZone[0][0] == -1 || crossTargetFairZone[0][1] == -1 || crossTargetFairZone[0][2] == -1){
-        return {{-1,-1,-1}};
+    if(crossTargetFairZone[0][0] == -1 ){
+        return {{-1,0}};
+    }
+
+    if(crossTargetFairZone[0][1] == -1){
+        return {{0,-1}};
     }
 
     //Определение ближайщей к целям точки области возможных положений
@@ -402,7 +402,6 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
         fairTrajectoryPoints.push_back(fairPoint);
         out.open(name, ios::app);
         out << fairPoint[0] << ' ' << fairPoint[1] << ' ' << fairPoint[2] << ' ' << '\n';
-        out << '\n';
         out.close();
     }
     return fairTrajectoryPoints;
