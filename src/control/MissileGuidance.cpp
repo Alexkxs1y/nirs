@@ -4,9 +4,11 @@
 #include <vector>
 #include "../../include/control/MissileGuidance.hpp"
 
+#define STOP_RANGE double(300)
 using namespace std;
 
-MissileGuidance::MissileGuidance(): K_guidance(vector<double>(2)), phi_hi(vector<double>(2)), V_rel(vector<double>(3)){}
+MissileGuidance::MissileGuidance(): K_guidance(vector<double>(2)), phi_hi(vector<double>(2)),
+                                    V_rel(vector<double>(3)), last_signal(vector<double>(2)){}
 
 MissileGuidance::~MissileGuidance(){}
 
@@ -14,12 +16,9 @@ vector<double> MissileGuidance::get_GuidanceSignal(PointMass* missile, vector<Po
     if(!updateInformation(missile, targets)){
         return {0, 0};
     }
-    vector<double> _d_eta_dt = d_eta_dt();
-    vector<double> signal(_d_eta_dt.size());
-    for(int i = 0; i < _d_eta_dt.size(); i++){
-        signal[i] = _d_eta_dt[i] * K_guidance[i];
-    }
-    return signal;
+    if(r_rel > STOP_RANGE)
+        last_signal = d_eta_dt();
+    return {last_signal[0] * K_guidance[0], last_signal[1] * K_guidance[1]};
 }
 
 bool MissileGuidance::init(vector<double>& _K_guidance){

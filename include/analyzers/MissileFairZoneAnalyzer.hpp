@@ -27,4 +27,28 @@ std::vector<double> pointDirectionBound( Missile* missile, Target* target, doubl
 std::vector< std::vector<double> > perpendToVectorFairSurface(    Missile* missile, Target* target_1, Target* target_2, double effectiveRadius,
                                                         double tolerance, std::vector<double>& direction, double step, double dt);
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////ПЕРЕГРУЗКА ДЛЯ APERIOD MISSILE///////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double effectiveRadius, double tolerance, double dt);
+
+//Построитель зоны допустимых мест пусков ракет. 
+//Это значит допустимых для поражения начальных положений ракеты относительно цели в текущий момент времени для текущей конфигурации цель-ракета,
+//то есть для текущего направления и величины скорости ракеты, а также скорости цели
+//Возвращает вектор пар: (высота, список точек зон ОВП)
+std::vector< std::vector<double> > missileFairZone(AperiodMissile* missile, Target* target, double effectiveRadius, double tolerance, double dt);
+
+
+std::vector< std::vector<double> > crossTargetMissileFairZone(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt);
+
+
+std::vector< std::vector<double> > fairTrajectoryPoints(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt);
+
+std::vector<double> pointDirectionBound( AperiodMissile* missile, Target* target, double effectiveRadius,
+                                    double tolerance, std::vector<double>& point , std::vector<double>& searchDirection, double dt);
+
+std::vector< std::vector<double> > perpendToVectorFairSurface(    AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius,
+                                                        double tolerance, std::vector<double>& direction, double step, double dt);
+
 #endif

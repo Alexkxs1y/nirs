@@ -5,11 +5,15 @@
 #include <math.h>
 #include <vector>
 #include "../models/Missile.hpp"
+#include "../models/AperiodMissile.hpp"
 #include "../models/Target.hpp"
 
 bool RK_STEP(Missile* missile, Target* target, double dt);
 
 std::vector<double> oneMissileSimulation(Missile* missile, Target* target, double dt);
 
+bool RK_STEP(AperiodMissile* missile, Target* target, double dt);
+
+std::vector<double> oneMissileSimulation(AperiodMissile* missile, Target* target, double dt);
 
 #endif

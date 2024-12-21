@@ -19,6 +19,7 @@ class MissileGuidance: public IGuidance{
     private:
         std::vector<double>  K_guidance; //Вектор коэффициентов пропорциональности
 
+        std::vector<double> last_signal; //Последний сигнал СН
         bool updateInformation(PointMass* missile, std::vector<PointMass*> targets);// Инициализация полей класса в зависимости от цели и ракеты
         double r_rel; //Расстояние между целью и ракетой
         std::vector<double> phi_hi; //Вектор проекций углов пеленга

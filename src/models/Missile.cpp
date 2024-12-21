@@ -207,7 +207,7 @@ void Missile::choose_Guidance(){
     if(targets.size() == 2){
         workGuidance = crossGuidance;
     } else {
-        if(targets.size() == 1){
+        if(targets.size() < 2){
             workGuidance = propGuidance;
         } else{ 
             cout <<"РАЗМЕР ЦЕЛЕЙ: " <<  targets.size() << '\n';
@@ -246,7 +246,7 @@ void Missile::solveControlConflict(vector<PointMass*>& _tags){
     }
 }
 
- void Missile::set_propGuidance(IGuidance* _propGuidance){
+void Missile::set_propGuidance(IGuidance* _propGuidance){
     propGuidance = _propGuidance;
  }
 

@@ -54,6 +54,7 @@ vector<double> MissileCrossTargetGuidance::currentMiss(PointMass* missile){
 vector<double> MissileCrossTargetGuidance::get_GuidanceSignal(PointMass* missile, std::vector<PointMass*> targets){
     if(!updateInformation(missile, targets)) return {0, 0};
     vector<double> miss = currentMiss(missile);
+    //ТУТ МОЖЕТ НАДО ДОБАВИТЬ УСЛОВИЙ...........................................................
     return {K_guidance[0] * miss[0], K_guidance[1] * miss[1]};
 }
 
