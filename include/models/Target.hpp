@@ -9,6 +9,7 @@
 class Target: public PointMass{
     public:
         Target();
+        Target(Target &_target);
         ~Target();
         bool init(  double _m, std::vector<double>& _stateVector, double n_max,
                     TargetGuidance* _targetGuidance, PointMass* _pursuer = 0
@@ -16,13 +17,15 @@ class Target: public PointMass{
         bool STEP(double dt) override;
         bool set_actualForceAndTorques();
         bool set_controlParams(); //Установка текущих параметров управления
+        void set_Guidance(IGuidance* _tg);
         void set_pursuer(PointMass* _pursuer); //Установка цели
         void set_pursuer(std::vector<PointMass*> _pursuer); //Установка цели
+        double get_n_max();
         std::vector<PointMass*> get_pursuers() const; //Возвращает указатель на преследователя
         std::vector<double> get_n_xyz() const; //Выдача параметров управления
 
     private:
-        TargetGuidance* targetGuidance;
+        IGuidance* targetGuidance;
         std::vector<PointMass*> pursuers;
         double n_max; //Максимальное значение управляющих параметров
         std::vector<double> n_xyz; //Управляющие параметры

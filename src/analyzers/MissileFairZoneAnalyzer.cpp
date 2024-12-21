@@ -4,14 +4,15 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
+#include "omp.h"
 
 #include "../../include/utils/MyMath.hpp"
 #include "../../include/analyzers/MissileFairZoneAnalyzer.hpp"
 
 #define MISSILE_DIR_STEP double(8000) //Длина начального шага для определения границы по направлению 
-#define NUM_OF_MNK_POINTS 10 //Число точек, используемых для аппроксимации траектории
-#define NUM_FAIR_ZONE_POINTS 36 //Число которое показывает шаг угла при построении допустимой зоны ракеты dAnngle = 2 * M_PI / NUM_FAIR_ZONE_POINTS
-#define NUM_SURFACE_POINT 36 //Число которое показываетшаг угла при построении допустимого положения ракеты в плоскости dAnngle = 2 * M_PI / NUM_SURFACE_POINT
+#define NUM_OF_MNK_POINTS 5 //Число точек, используемых для аппроксимации траектории
+#define NUM_FAIR_ZONE_POINTS 36  //Число которое показывает шаг угла при построении допустимой зоны ракеты dAnngle = 2 * M_PI / NUM_FAIR_ZONE_POINTS
+#define NUM_SURFACE_POINT 24 //Число которое показываетшаг угла при построении допустимого положения ракеты в плоскости dAnngle = 2 * M_PI / NUM_SURFACE_POINT
 
 using namespace std;
 
@@ -164,55 +165,58 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
     
     if(range(missileR, bound_1) < range(missileR, bound_2)){
         crossTargetMissileFairZone.push_back(bound_1);
-        out.open(name, ios::app);
-        out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
-        out << '\n';
-        out.close();
     } else {
         crossTargetMissileFairZone.push_back(bound_2);
-        out.open(name, ios::app);
-        out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
-        out << '\n';
-        out.close();
-    }
-
-    for(int i = 1; i < int(numPoints * 0.5); i ++){
-        for(int j = 0; j <= int(numPoints * 0.5); j ++){
-            _yaw =  M_PI * 0.5 - 2 * double(j) * M_PI / double(numPoints);
-            _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
-            bound_1 = directionBound(missile, target_1, _yaw, _pitch, effectiveRadius, tolerance, dt);
-            bound_2 = directionBound(missile, target_2, _yaw, _pitch, effectiveRadius, tolerance, dt);
-            if(range(missileR, bound_1) < range(missileR, bound_2)){
-                crossTargetMissileFairZone.push_back(bound_1);
-                out.open(name, ios::app);
-                out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
-                out.close();
-            } else {
-                crossTargetMissileFairZone.push_back(bound_2);
-                out.open(name, ios::app);
-                out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
-                out.close();
+    }   
+    omp_set_num_threads(omp_get_max_threads());
+    double OMPtime = omp_get_wtime();
+    #pragma omp parallel private(_yaw, _pitch, bound_1, bound_2)
+    {   
+        cout << omp_get_num_threads() << '\n';
+        Missile missile_loc(*missile);
+        Target target1_loc(*target_1);
+        Target target2_loc(*target_2);
+        TargetGuidance tg;
+        target1_loc.set_Guidance(&tg);
+        target2_loc.set_Guidance(&tg);
+        vector<double> K_guidance = {235, 235};
+        MissileGuidance mg;
+        mg.init(K_guidance);
+        missile_loc.set_propGuidance(&mg);
+        missile_loc.set_target({&target1_loc, &target2_loc});
+        #pragma omp for schedule(dynamic)
+        for(int i = 1; i < int(numPoints * 0.5); i ++){
+            for(int j = 0; j <= int(numPoints * 0.5); j ++){
+                _yaw =  M_PI * 0.5 - 2 * double(j) * M_PI / double(numPoints);
+                _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
+                bound_1 = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, effectiveRadius, tolerance, dt);
+                bound_2 = directionBound(&missile_loc, &target2_loc, _yaw, _pitch, effectiveRadius, tolerance, dt);
+                if(range(missileR, bound_1) < range(missileR, bound_2)){
+                    #pragma omp critical
+                        crossTargetMissileFairZone.push_back(bound_1);
+                } else {
+                    #pragma omp critical
+                        crossTargetMissileFairZone.push_back(bound_2);
+                }
             }
         }
-        out.open(name, ios::app);
-        out << '\n';
-        out.close();
     }
+    cout << "ВРЕМЯ НА ЗОНУ" << omp_get_wtime() - OMPtime << '\n';
 
     bound_1 = directionBound(missile, target_1, _yaw, - M_PI * 0.5, effectiveRadius, tolerance, dt);
     bound_2 = directionBound(missile, target_2, _yaw, - M_PI * 0.5, effectiveRadius, tolerance, dt);
     
     if(range(missileR, bound_1) < range(missileR, bound_2)){
         crossTargetMissileFairZone.push_back(bound_1);
-        out.open(name, ios::app);
-        out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
-        out.close();
     } else {
         crossTargetMissileFairZone.push_back(bound_2);
-        out.open(name, ios::app);
-        out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
-        out.close();
     }
+    
+    out.open(name, ios::app);
+    for(size_t i = 0; i < crossTargetMissileFairZone.size(); i ++){
+            out << crossTargetMissileFairZone[i][0] << ' ' << crossTargetMissileFairZone[i][1] << ' ' << crossTargetMissileFairZone[i][2] << ' ' << '\n';
+    }
+    out.close();
 
     return crossTargetMissileFairZone;     
 }
@@ -294,7 +298,7 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
 
     int numPoints = NUM_SURFACE_POINT;
 
-    vector< vector<double> > fairSurface(0);
+    vector< vector<double> > fairSurface(numPoints);
     vector<double> missileState = missile -> get_stateVector();
     vector<double> hitPoint(3);
 
@@ -323,26 +327,46 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
     vector<double> searchDirection(3);
     vector<double> bound_1(3);
     vector<double> bound_2(3);
-    
-    for(size_t i = 0; i < numPoints; i ++){
-        searchAngle = 2 * M_PI * double(i) / double(numPoints);
-        searchDirection = rotate(normToDirection, direction, searchAngle);
-        bound_1 = pointDirectionBound(missile, target_1, effectiveRadius, tolerance, hitPoint, searchDirection, dt);
-        bound_2 = pointDirectionBound(missile, target_2, effectiveRadius, tolerance, hitPoint, searchDirection, dt);
-        if(range(hitPoint, bound_1) < range(hitPoint, bound_2)){
-            fairSurface.push_back(bound_1);
-            out.open(name, ios::app);
-            out << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << ' ' << '\n';
-            out.close();
-            //cout << bound_1[0] << ' ' << bound_1[1] << ' ' << bound_1[2] << '\n';            
-        } else {
-            fairSurface.push_back(bound_2);
-            out.open(name, ios::app);
-            out << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << ' ' << '\n';
-            out.close();
-            //cout << bound_2[0] << ' ' << bound_2[1] << ' ' << bound_2[2] << '\n';
+
+    omp_set_num_threads(omp_get_max_threads());
+    double OMPtime = omp_get_wtime();
+    #pragma omp parallel private(bound_1, bound_2, searchAngle, searchDirection)
+    {
+        Missile missile_loc(*missile);
+        Target target1_loc(*target_1);
+        Target target2_loc(*target_2);
+        TargetGuidance tg;
+        target1_loc.set_Guidance(&tg);
+        target2_loc.set_Guidance(&tg);
+        vector<double> K_guidance = {235, 235};
+        MissileGuidance mg;
+        mg.init(K_guidance);
+        missile_loc.set_propGuidance(&mg);
+        missile_loc.set_target({&target1_loc, &target2_loc});
+
+        #pragma omp for schedule(dynamic)
+        for(size_t i = 0; i < numPoints; i ++){
+            searchAngle = 2 * M_PI * double(i) / double(numPoints);
+            searchDirection = rotate(normToDirection, direction, searchAngle);
+            bound_1 = pointDirectionBound(&missile_loc, &target1_loc, effectiveRadius, tolerance, hitPoint, searchDirection, dt);
+            bound_2 = pointDirectionBound(&missile_loc, &target2_loc, effectiveRadius, tolerance, hitPoint, searchDirection, dt);
+            if(range(hitPoint, bound_1) < range(hitPoint, bound_2)){
+                #pragma omp critical
+                    fairSurface[i] = bound_1; 
+            } else {
+                #pragma omp critical
+                    fairSurface[i] = bound_2;
+            }
         }
     }
+
+    cout << "ВРЕМЯ НА ПЕРПЕНДИКУЛЯРНУЮ ПОВЕРХНОСТЬ: " << omp_get_wtime() - OMPtime << '\n';
+    out.open(name, ios::app);
+    for(size_t i = 0; i < numPoints; i++){
+        out << fairSurface[i][0] << ' ' << fairSurface[i][1] << ' ' << fairSurface[i][2] << ' ' << '\n';
+    }
+    out.close();
+
     return fairSurface;
 }
 

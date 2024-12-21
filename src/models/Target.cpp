@@ -100,7 +100,18 @@ bool Target::set_actualForceAndTorques(){
     return true;
 }
 
-
-Target::Target(Target &_target){
-    
+double Target::get_n_max(){
+    return n_max;
 }
+
+Target::Target(Target &_target): PointMass(_target){
+    targetGuidance = 0;
+    pursuers = vector<PointMass*>(0);
+    n_max = _target.get_n_max();
+    n_xyz = {0, 0, 0};
+    nUpToDate = false;
+}
+
+ void Target::set_Guidance(IGuidance* _tg){
+    targetGuidance = _tg;
+ }

@@ -26,6 +26,12 @@ class Missile: public RigidBody{
         void set_target(std::vector<Target*> _targets); //Установка целей
         void set_propGuidance(IGuidance* _propGuidance);
         void set_crossGuidance(IGuidance* _crossGuidance);
+
+        double get_l();
+        double get_d();
+        double get_delta_max();
+        MissileStabilization* get_missileStab();
+        IAerodynamic* get_missileAero();
         IGuidance* get_Guidance();//Возвращает ссылку на текущую систему наведения
         std::vector<Target*> get_targets(); //Выдача указателя на цель
         std::vector<double> get_deltas(); //Выдача параметров управления

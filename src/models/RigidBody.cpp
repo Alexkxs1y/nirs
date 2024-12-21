@@ -290,3 +290,11 @@ bool RigidBody::STEP(double dt, vector<double> dr_dt, vector<double> dV_dt, vect
 
     return true;
 }   
+
+
+ RigidBody::RigidBody(RigidBody &_rigidBody): PointMass(_rigidBody){
+    orientationVector = _rigidBody.get_orientationVector();
+    J = _rigidBody.get_J();
+    torques = {0, 0, 0};
+    torquesUpToDate = false;  
+ }

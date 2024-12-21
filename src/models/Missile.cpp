@@ -210,6 +210,7 @@ void Missile::choose_Guidance(){
         if(targets.size() == 1){
             workGuidance = propGuidance;
         } else{ 
+            cout <<"РАЗМЕР ЦЕЛЕЙ: " <<  targets.size() << '\n';
             throw runtime_error("Wrong number of targets!");
         }
     }
@@ -233,6 +234,7 @@ void Missile::solveControlConflict(vector<PointMass*>& _tags){
                 this -> set_target(targets[0]);
                 choose_Guidance();
             } else {
+                choose_Guidance();
                 pair<vector<double>, vector<double>> coefs = fitCubicPolynomials3D(points);
                 workGuidance -> updateData(coefs);
             }
@@ -251,3 +253,37 @@ void Missile::solveControlConflict(vector<PointMass*>& _tags){
 void Missile::set_crossGuidance(IGuidance* _crossGuidance){
     crossGuidance = _crossGuidance;
 }
+
+double Missile::get_l(){
+    return l;
+}
+
+double Missile::get_d(){
+    return d;
+}
+
+double Missile::get_delta_max(){
+    return delta_max;
+}
+
+MissileStabilization* Missile::get_missileStab(){
+    return missileStabilization;
+}
+
+IAerodynamic* Missile::get_missileAero(){
+    return missileAerodynamic;
+}
+
+ Missile::Missile(Missile &_missile): RigidBody(_missile){
+    missileAerodynamic = _missile.get_missileAero();
+    missileStabilization = _missile.get_missileStab();
+    workGuidance = 0;
+    propGuidance = 0;
+    crossGuidance = 0;
+    targets = vector<Target*>(0);
+    l = _missile.get_l();
+    d = _missile.get_d();
+    delta_max = _missile.get_delta_max();
+    deltas = vector<double>(3);
+    deltaUpToDate = false;
+ }

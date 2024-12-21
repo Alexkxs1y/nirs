@@ -158,7 +158,7 @@ vector<double> oneMissileSimulation(Missile* missile, Target* target, double dt)
 
     missile -> set_state(stateVector_missile, ryp_missile, w_missile);
     missile -> set_target(initialMissilesTargets);
-    missile ->choose_Guidance();
+   // missile ->choose_Guidance();
     target -> set_state(stateVector_target);
     target -> set_pursuer(initialTargetPursuers);
   
