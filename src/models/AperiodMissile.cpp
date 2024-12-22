@@ -21,6 +21,9 @@ AperiodMissile::AperiodMissile():   workGuidance(0), propGuidance(0), crossGuida
 AperiodMissile::~AperiodMissile(){}
 
 AperiodMissile::AperiodMissile(AperiodMissile &_missile): PointMass(_missile){
+    n_xyz = vector<double>(3);
+    n_xyz_body = vector<double>(3);
+    d_n_xyz_body = vector<double>(2);
     n_max = _missile.get_n_max();
     T_missisle = _missile.get_T_missile();
     nUpToDate = false;
@@ -32,6 +35,7 @@ bool AperiodMissile::init(double _m, std::vector<double>& _stateVector, double _
         return false;
     }
     n_max = _n_max;
+    n_xyz_body = {0, 0, 0};
     T_missisle = _T_missisle;
     propGuidance = _propGuidance;
     targets.resize(1);
@@ -49,6 +53,12 @@ bool AperiodMissile::STEP(double dt) {
     
     for(size_t i = 0; i < d_n_xyz_body.size(); i++){
         n_xyz_body[i + 1] += d_n_xyz_body[i] * dt;
+    }
+    double n_norm = sqrt(n_xyz_body[1] * n_xyz_body[1] + n_xyz_body[2] * n_xyz_body[2]);
+
+    if (n_norm > n_max){
+        n_xyz_body[1] *= n_max / n_norm;
+        n_xyz_body[2] *= n_max / n_norm; 
     }
 
     if(!calc_forces()){
@@ -113,12 +123,6 @@ bool AperiodMissile::set_controlParams(){
     d_n_xyz_body[0] = (_guidanceSignal[0] - n_xyz_body[1]) / T_missisle;
     d_n_xyz_body[1] = (_guidanceSignal[1] - n_xyz_body[2]) / T_missisle;
 
-    double n_norm = sqrt(n_xyz_body[1] * n_xyz_body[1] + n_xyz_body[2] * n_xyz_body[2]);
-
-    if (n_norm > n_max){
-        n_xyz_body[1] *= n_max / n_norm;
-        n_xyz_body[2] *= n_max / n_norm; 
-    }
     //cout << n_xyz_body[1] << ' ' << n_xyz_body[2] << '\n'; 
 
     for(int i = 0; i < n_xyz.size(); i++){
@@ -234,6 +238,13 @@ bool AperiodMissile::STEP(double dt, std::vector<double>& dr_dt, std::vector<dou
     for(size_t i = 0; i < d_n_xyz_body.size(); i++){
         n_xyz_body[i + 1] += d_n_xyz_body[i] * dt;
     }
+    double n_norm = sqrt(n_xyz_body[1] * n_xyz_body[1] + n_xyz_body[2] * n_xyz_body[2]);
+
+    if (n_norm > n_max){
+        n_xyz_body[1] *= n_max / n_norm;
+        n_xyz_body[2] *= n_max / n_norm; 
+    }
+
     return true;
 }
 

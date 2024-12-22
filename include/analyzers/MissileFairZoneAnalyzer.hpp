@@ -51,4 +51,6 @@ std::vector<double> pointDirectionBound( AperiodMissile* missile, Target* target
 std::vector< std::vector<double> > perpendToVectorFairSurface(    AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius,
                                                         double tolerance, std::vector<double>& direction, double step, double dt);
 
+
+std::vector< std::vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt);
 #endif

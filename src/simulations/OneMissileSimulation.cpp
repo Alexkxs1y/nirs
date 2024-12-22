@@ -287,8 +287,9 @@ vector<double> oneMissileSimulation(AperiodMissile* missile, Target* target, dou
 
     while(range_curr <= range_old){
         range_old = range_curr;
-            cout << t <<' '<< missile -> get_Vabs() << ' ' <<missile -> get_x() << ' ' << missile -> get_y() << ' ' << missile -> get_z() << ' ' << target ->get_x() << ' ' << target ->get_y()
-    << ' ' << target ->get_z() << '\n';
+        /*cout << t <<' '<< missile -> get_Vabs() << ' ' <<missile -> get_x() << ' ' << missile -> get_y() << ' ' << missile -> get_z() << ' ' << target ->get_x() << ' ' << target ->get_y()
+        << ' ' << target ->get_z() << ' ' << range_old << '\n';*/
+        //cout << t << ' ' << missile->get_d_n_xyz_body()[0] << ' ' << missile -> get_n_xyz_body()[1] <<'\n'; 
         //Проверка на достаточность скорости ракеты
         if(0.5 * missile->get_Vabs() < target->get_Vabs()){
             missile -> set_state(stateVector_missile, n_xyz_body);
@@ -299,6 +300,7 @@ vector<double> oneMissileSimulation(AperiodMissile* missile, Target* target, dou
         }
 
         //Интегрирование Эйлером
+        
         /*
         missile -> set_controlParams();
         target -> set_controlParams();
