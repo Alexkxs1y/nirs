@@ -9,9 +9,9 @@
 #include "../../include/utils/MyMath.hpp"
 #include "../../include/analyzers/MissileFairZoneAnalyzer.hpp"
 
-#define MISSILE_DIR_STEP double(8000) //Длина начального шага для определения границы по направлению 
-#define NUM_OF_MNK_POINTS 5 //Число точек, используемых для аппроксимации траектории
-#define NUM_FAIR_ZONE_POINTS 36  //Число которое показывает шаг угла при построении допустимой зоны ракеты dAnngle = 2 * M_PI / NUM_FAIR_ZONE_POINTS
+#define MISSILE_DIR_STEP double(11000) //Длина начального шага для определения границы по направлению 
+#define NUM_OF_MNK_POINTS 100 //Число точек, используемых для аппроксимации траектории
+#define NUM_FAIR_ZONE_POINTS 120  //Число которое показывает шаг угла при построении допустимой зоны ракеты dAnngle = 2 * M_PI / NUM_FAIR_ZONE_POINTS
 #define NUM_SURFACE_POINT 24 //Число которое показываетшаг угла при построении допустимого положения ракеты в плоскости dAnngle = 2 * M_PI / NUM_SURFACE_POINT
 
 using namespace std;
@@ -179,7 +179,7 @@ vector< vector<double> > crossTargetMissileFairZone(Missile* missile, Target* ta
         TargetGuidance tg;
         target1_loc.set_Guidance(&tg);
         target2_loc.set_Guidance(&tg);
-        vector<double> K_guidance = {235, 235};
+        vector<double> K_guidance = {5, 5};
         MissileGuidance mg;
         mg.init(K_guidance);
         missile_loc.set_propGuidance(&mg);
@@ -338,7 +338,7 @@ vector< vector<double> > perpendToVectorFairSurface(    Missile* missile, Target
         TargetGuidance tg;
         target1_loc.set_Guidance(&tg);
         target2_loc.set_Guidance(&tg);
-        vector<double> K_guidance = {235, 235};
+        vector<double> K_guidance = {5, 5};
         MissileGuidance mg;
         mg.init(K_guidance);
         missile_loc.set_propGuidance(&mg);
@@ -438,7 +438,7 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double effectiveRadius, double tolerance, double dt){
+/*vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double effectiveRadius, double tolerance, double dt){
     
     double step = MISSILE_DIR_STEP;
     vector<double> missile_stateVector = missile -> get_stateVector();
@@ -500,6 +500,58 @@ vector<double> directionBound(AperiodMissile* missile, Target* target, double _y
     }
 
     return bound;
+}*/
+
+
+vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double effectiveRadius, double tolerance, double dt){
+    
+    double step = 200000;
+    vector<double> missile_stateVector = missile -> get_stateVector();
+    vector<double> missile_n_xyz_body = missile -> get_n_xyz_body();
+    vector<double> missile_stateVector_initial = missile_stateVector;
+    //_pitch = - 0.5 * M_PI;
+    vector<double> flightRes(6);
+    double missDistanse = 0;
+    vector<double> cos_xyz = { cos(_pitch) * cos(_yaw),  sin(_pitch) * cos(_yaw), sin(_yaw) };  
+    vector<double> left(3);
+    vector<double> right(3);
+    vector<double> med(3);
+    for(size_t i = 0; i < 3; i++){
+        left[i] = missile_stateVector[i];
+        right[i] = left[i] + step * cos_xyz[i];
+    }
+    while(range(left, right) > effectiveRadius){
+        for(size_t i = 0; i < 3; i++){
+            med[i] = 0.5 * (left[i] + right[i]);
+            missile_stateVector[i] = med[i];
+        }
+        if(med[1] < 0){
+            double back_step = med[1] / cos_xyz[1];
+            for(size_t i = 0; i < 3; i++){
+                med[i] -= back_step * cos_xyz[i];
+                missile_stateVector[i] = med[i];
+            }
+        }
+        missile -> set_state(missile_stateVector, missile_n_xyz_body);
+        flightRes = oneMissileSimulation(missile, target, dt);
+        if(flightRes[0] > effectiveRadius || flightRes[4] < 0 || flightRes[5] < 0){
+            right = med;
+        } else {
+                if(abs(med[1]) < 1) break;
+                left = med;
+        }
+    }
+
+    cout << missile_stateVector[0] << ' ' << missile_stateVector[1] << ' ' << missile_stateVector[2] << '\n';
+
+    missile -> set_state(missile_stateVector_initial, missile_n_xyz_body);
+
+    vector<double> bound(3);
+    for(size_t i = 0; i < bound.size(); i++){
+        bound[i] = missile_stateVector[i];
+    }
+
+    return bound;
 }
 
 
@@ -531,7 +583,7 @@ vector< vector<double> > missileFairZone(AperiodMissile* missile, Target* target
         Target target1_loc(*target);
         TargetGuidance tg;
         target1_loc.set_Guidance(&tg);
-        vector<double> K_guidance = {2150, 2150};
+        vector<double> K_guidance = {5, 5};
         MissileGuidance mg;
         mg.init(K_guidance);
         missile_loc.set_propGuidance(&mg);
@@ -609,7 +661,7 @@ vector< vector<double> > crossTargetMissileFairZone(AperiodMissile* missile, Tar
         TargetGuidance tg;
         target1_loc.set_Guidance(&tg);
         target2_loc.set_Guidance(&tg);
-        vector<double> K_guidance = {2150, 2150};
+        vector<double> K_guidance = {5, 5};
         MissileGuidance mg;
         mg.init(K_guidance);
         missile_loc.set_propGuidance(&mg);
@@ -656,7 +708,7 @@ vector< vector<double> > crossTargetMissileFairZone(AperiodMissile* missile, Tar
 vector< vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt){
     
     ofstream out;          
-    string name = "crossSurf_"+ to_string(int(missile->get_x())) + ".dat";  
+    string name = "crossSurf"+ to_string(int(missile->get_x())) + ".dat";  
     
     int numPoints = NUM_FAIR_ZONE_POINTS;
 
@@ -668,18 +720,18 @@ vector< vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Tar
 
     //Если из текущий точки поражение совершить невозможно
     //Функция прекращает работы и делает вывод пары {-1, {{-1,-1}}}
-    if(flyghtRes_1[0] > effectiveRadius || flyghtRes_1[4] < 0){    
+    if(flyghtRes_1[0] > effectiveRadius || flyghtRes_1[4] < 0 || flyghtRes_1[5] < 0){    
         return { {-1, 0 } };        
     }
 
-    if(flyghtRes_2[0] > effectiveRadius || flyghtRes_2[4] < 0){    
+    if(flyghtRes_2[0] > effectiveRadius || flyghtRes_2[4] < 0 || flyghtRes_2[5] < 0){    
         return { { 0 , -1 } };        
     }
 
     double _yaw = 0, _pitch = 0;
     vector<double> bound_1(3);
     vector<double> bound_2(3);
-    vector< vector<double> > crossTargetMissileFairZone(numPoints);
+    vector< vector<double> > crossTargetMissileFairZone((int(numPoints * 0.5) + 1));
     
     omp_set_num_threads(omp_get_max_threads());
     double OMPtime = omp_get_wtime();
@@ -692,7 +744,7 @@ vector< vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Tar
         TargetGuidance tg;
         target1_loc.set_Guidance(&tg);
         target2_loc.set_Guidance(&tg);
-        vector<double> K_guidance = {2150, 2150};
+        vector<double> K_guidance = {5, 5};
         MissileGuidance mg;
         mg.init(K_guidance);
         missile_loc.set_propGuidance(&mg);
@@ -840,7 +892,7 @@ vector< vector<double> > perpendToVectorFairSurface(    AperiodMissile* missile,
         TargetGuidance tg;
         target1_loc.set_Guidance(&tg);
         target2_loc.set_Guidance(&tg);
-        vector<double> K_guidance = {235, 235};
+        vector<double> K_guidance = {5, 5};
         MissileGuidance mg;
         mg.init(K_guidance);
         missile_loc.set_propGuidance(&mg);
@@ -866,6 +918,59 @@ vector< vector<double> > perpendToVectorFairSurface(    AperiodMissile* missile,
     cout << "ВРЕМЯ НА ПЕРПЕНДИКУЛЯРНУЮ ПОВЕРХНОСТЬ: " << omp_get_wtime() - OMPtime << '\n';
     out.open(name, ios::app);
     for(size_t i = 0; i < numPoints; i++){
+        out << fairSurface[i][0] << ' ' << fairSurface[i][1] << ' ' << fairSurface[i][2] << ' ' << '\n';
+    }
+    out.close();
+
+    return fairSurface;
+}
+
+
+vector< vector<double> > perpendToVectorFairLine(    AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius,
+                                                        double tolerance, vector<double>& direction, double step, double dt){
+    ofstream out;          
+    string name = "line_"  +  to_string(int(missile->get_x())) + "_" + to_string(int(step))  +".dat";
+
+    int numPoints = NUM_SURFACE_POINT;
+
+    vector< vector<double> > fairSurface(2);
+    vector<double> missileState = missile -> get_stateVector();
+    vector<double> hitPoint(3);
+
+    for(size_t i = 0; i < hitPoint.size(); i++){
+        hitPoint[i] = missileState[i] +  step * direction[i];
+    }
+
+    //Вектор перпендикулярный к направлению шагов
+    vector<double> normToDirection = {-direction[1], direction[0], 0};
+    
+    normalize(normToDirection);
+
+    vector<double> bound_1(3);
+    vector<double> bound_2(3);
+
+    bound_1 = pointDirectionBound(missile, target_1, effectiveRadius, tolerance, hitPoint, normToDirection, dt);
+    bound_2 = pointDirectionBound(missile, target_2, effectiveRadius, tolerance, hitPoint, normToDirection, dt);
+    if(range(hitPoint, bound_1) < range(hitPoint, bound_2)){
+            fairSurface[0] = bound_1; 
+    } else {
+            fairSurface[0] = bound_2;
+    }
+
+    normToDirection = {direction[1], -direction[0], 0};
+    
+    normalize(normToDirection);
+
+    bound_1 = pointDirectionBound(missile, target_1, effectiveRadius, tolerance, hitPoint, normToDirection, dt);
+    bound_2 = pointDirectionBound(missile, target_2, effectiveRadius, tolerance, hitPoint, normToDirection, dt);
+    if(range(hitPoint, bound_1) < range(hitPoint, bound_2)){
+            fairSurface[1] = bound_1; 
+    } else {
+            fairSurface[1] = bound_2;
+    }
+
+    out.open(name, ios::app);
+    for(size_t i = 0; i < fairSurface.size(); i++){
         out << fairSurface[i][0] << ' ' << fairSurface[i][1] << ' ' << fairSurface[i][2] << ' ' << '\n';
     }
     out.close();
@@ -926,6 +1031,67 @@ vector< vector<double> > fairTrajectoryPoints(AperiodMissile* missile, Target* t
         step = maxLength * double(i) / double(nMNK);
         fairSurface = perpendToVectorFairSurface(missile, target_1, target_2, effectiveRadius, tolerance, direction, step, dt);
         fairPoint = findFarthestPointInPlane(fairSurface, fairSurface[0], direction);
+        fairTrajectoryPoints.push_back(fairPoint);
+        out.open(name, ios::app);
+        out << fairPoint[0] << ' ' << fairPoint[1] << ' ' << fairPoint[2] << ' ' << '\n';
+        out.close();
+    }
+    return fairTrajectoryPoints;
+}
+
+
+vector< vector<double> > fairTrajectoryPoints_surf(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt){
+    ofstream out;          
+    string name = "fairPointsOnSurf_" + to_string(int(missile->get_x()))+ ".dat";
+    
+    vector< vector<double> > fairTrajectoryPoints(0);
+    
+    int nMNK = NUM_OF_MNK_POINTS; //Количество точек, используемых для прогноза траектории
+
+    vector< vector<double> > crossTargetFairZone = crossTargetMissileFairSurf(missile, target_1, target_2, effectiveRadius, tolerance, dt);
+    
+    if(crossTargetFairZone[0][0] == -1 ){
+        return {{-1,0}};
+    }
+
+    if(crossTargetFairZone[0][1] == -1){
+        return {{0,-1}};
+    }
+
+    //Определение ближайщей к целям точки области возможных положений
+    vector<double> target_1R = target_1 -> get_stateVector();
+    vector<double> target_2R = target_2 -> get_stateVector();
+    target_1R.resize(3);
+    target_2R.resize(3);
+    vector<double> lastPoint = nearestPointFromSample(target_1R, target_2R, crossTargetFairZone);
+
+    cout << "Ближайщая точка: " << lastPoint[0] << ' ' << lastPoint[1] << ' ' << lastPoint[2] << '\n';
+
+    vector<double> missileState = missile -> get_stateVector();
+    
+    //Вектор от ракеты до ближайшей к целям точке, принадежащей поверхности допустимой зоны положения ракеты.
+    vector<double> direction(3);
+    for(size_t i = 0; i < direction.size(); i ++){
+        direction[i] = lastPoint[i] - missileState[i];
+    }
+    normalize(direction);
+
+    cout << "Направление построений плоскостей: " << direction[0] << ' ' << direction[1] << ' ' << direction[2] << '\n';
+
+    //Определение максимальной дальности полётаза время постоянства траектории. 
+    double maxLength = lastPoint[0];
+    double step = 0;
+
+    cout << "Максимальная длина построения: " << maxLength << '\n';
+
+    //Создание переменной, куда будет суваться плоскость поражения перпендикулярная направлению полёта
+    vector< vector<double> > fairSurface(0);
+    vector<double> fairPoint(3);
+    
+    for(size_t i = 0; i < nMNK; i ++){
+        step = maxLength * double(i) / double(nMNK);
+        fairSurface = perpendToVectorFairLine(missile, target_1, target_2, effectiveRadius, tolerance, direction, step, dt);
+        fairPoint = { (fairSurface[0][0] + fairSurface[1][0])*0.5, (fairSurface[0][1] + fairSurface[1][1])*0.5 };
         fairTrajectoryPoints.push_back(fairPoint);
         out.open(name, ios::app);
         out << fairPoint[0] << ' ' << fairPoint[1] << ' ' << fairPoint[2] << ' ' << '\n';

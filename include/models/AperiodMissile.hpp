@@ -11,6 +11,7 @@ class AperiodMissile: public PointMass{
     public:
         AperiodMissile();
         ~AperiodMissile();
+        //Сейчас копируется всё (в том числе текующие производные управляющих параметров и текущие управляющие параметры);
         AperiodMissile(AperiodMissile &_missile);
         bool init(double _m, std::vector<double>& _stateVector, double _n_max, double _T_missisle, IGuidance* _propGuidance, Target* _target = 0);
         bool STEP(double dt) override;

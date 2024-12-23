@@ -8,7 +8,7 @@
 #include "../../include/analyzers/MissileFairZoneAnalyzer.hpp"
 #include "../../include/utils/MyMath.hpp"
 
-#define DRAG_KOEF double(0.05)
+#define DRAG_KOEF double(4e-5)
 #define EFFECTIVE_RAD double(15)
 #define TOLERANCE double(0.5)
 
@@ -22,8 +22,10 @@ AperiodMissile::~AperiodMissile(){}
 
 AperiodMissile::AperiodMissile(AperiodMissile &_missile): PointMass(_missile){
     n_xyz = vector<double>(3);
-    n_xyz_body = vector<double>(3);
-    d_n_xyz_body = vector<double>(2);
+    //n_xyz_body = vector<double>(3);
+    n_xyz_body = _missile.get_n_xyz_body();
+    //d_n_xyz_body = vector<double>(2);
+    d_n_xyz_body = _missile.get_d_n_xyz_body();
     n_max = _missile.get_n_max();
     T_missisle = _missile.get_T_missile();
     nUpToDate = false;
@@ -43,7 +45,6 @@ bool AperiodMissile::init(double _m, std::vector<double>& _stateVector, double _
     nUpToDate = false;
     return true;
 }
-
 
 bool AperiodMissile::STEP(double dt) {
      if(!nUpToDate){
@@ -100,8 +101,8 @@ bool AperiodMissile::set_controlParams(){
     vector<double> _guidanceSignal = workGuidance->get_GuidanceSignal(this, tags);
     
     double Vabs = get_Vabs();
-    double Theta = asin(get_Vy()/Vabs);
-    double Psi = asin(-get_Vz() / cos(Theta) / Vabs);
+    double Theta = atan2(get_Vy(), get_Vx());
+    double Psi = atan2(-get_Vz(), sqrt(get_Vx() * get_Vx() + get_Vy() * get_Vy()));
 
     vector<double> cos_tp = {cos(Theta), cos(Psi)};
     vector<double> sin_tp = {sin(Theta), sin(Psi)};
@@ -118,7 +119,7 @@ bool AperiodMissile::set_controlParams(){
 
     //double n_drag = DRAG_KOEF * Vabs; //Значение перегрузки от сопротивления
     
-    n_xyz_body[0] = - DRAG_KOEF * Vabs / Atmosphere_GOST_4401_81<double>::get_g(0); //Значение перегрузки от сопротивления
+    n_xyz_body[0] = - DRAG_KOEF * Vabs * Vabs / Atmosphere_GOST_4401_81<double>::get_g(0); //Значение перегрузки от сопротивления
 
     d_n_xyz_body[0] = (_guidanceSignal[0] - n_xyz_body[1]) / T_missisle;
     d_n_xyz_body[1] = (_guidanceSignal[1] - n_xyz_body[2]) / T_missisle;

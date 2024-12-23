@@ -111,9 +111,6 @@ vector<double> hitPointFinder(Missile* missile, Target* target, double effective
     return  hitPoint;
 }
 
-
-
-
 vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, double effectiveRadius, double tolerance, double approxPointX, double approxPointZ, double dt, int numPoints){
 
     //Создание файла для записи плоскости не ухода
@@ -200,8 +197,6 @@ vector< vector<double> > noEscapeSurface(Missile* missile, Target* target, doubl
 
     return noEscapeSurface;
 }
-
-
 
 vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile, Target* target, double V_mis, double V_tar, double yaw_rel, double pitch_rel, double effectiveRadius, double tolerance, double dt, int numPoints){
     double y_mid = 6000; // Будем считать, что это высота, на которой находится ракета. Относительно неё будем варьировать высоту цели.
@@ -316,3 +311,58 @@ vector< pair< double, vector< vector<double> > > > noEscapeZone(Missile* missile
 
     return noEscapeZone;
 }
+
+vector<double> hitPointFinder(AperiodMissile* missile, Target* target, double effectiveRadius, double dt){
+    vector<double> left(3);
+    vector<double> right(3);
+    vector<double> med(3);
+    
+    double _pitch = atan2(missile -> get_Vy(), missile ->get_Vx());
+    double _yaw = atan2(-missile ->get_Vz(), sqrt(missile ->get_Vx() * missile ->get_Vx() + missile ->get_Vy() * missile ->get_Vy()));
+    vector<double> cos_xyz = { cos(_pitch) * cos(_yaw),  sin(_pitch) * cos(_yaw), sin(_yaw) };
+    
+    vector<double> target_stateVector = target -> get_stateVector();
+    vector<double> target_stateVector_initial = target_stateVector;
+    vector<double> missile_stateVector = missile -> get_stateVector();
+    
+    vector<double> flightRes(6);
+
+    for(size_t i = 0; i < 3; i++){
+        left[i] = missile_stateVector[i];
+        right[i] = left[i] + 100000 * cos_xyz[i];
+    }
+
+    while(true){
+        for(size_t i = 0; i < 3; i++){
+            med[i] = 0.5 * (left[i] + right[i]);
+            target_stateVector[i] = med[i];
+        }
+        target -> set_state(target_stateVector);
+        flightRes = oneMissileSimulation(missile, target, dt);
+        if(flightRes[4] < 0){
+            right = med;
+        } else {
+            if(flightRes[5] < 0){
+                left = med;
+            } else {
+                if(flightRes[0] < effectiveRadius){
+                    target -> set_state(target_stateVector_initial);
+                    return target_stateVector;
+                }else{
+                    right = med;
+                }
+            }
+        }
+    }
+}
+
+//Попытка найти попадающую точку по предыдущему слою
+std::vector<double> luckyHitFinder(AperiodMissile* missile, Target* target, double effectiveRadius, double approxPointX, double approxPointZ, double dt);
+
+//Построитель плоскости достижимости. Варьируется только положение XZ цели 
+std::vector< std::vector<double> > noEscapeSurface(AperiodMissile* missile, Target* target, double effectiveRadius, double tolerance, double approxPointX, double approxPointZ, double dt, int numPoints );
+
+//Построитель зоны неухода. Для текущей конфигурации цель-ракета
+//При прямолинейном движении цели зона зависит от скорости цели, скорости ракеты, направления относительной скорости. (Относительную скорость будем рассматривать относительно ракеты).
+//Возвращает вектор пар: (высота, список точек зон ОВП)
+std::vector< std::pair< double, std::vector< std::vector<double> > > > noEscapeZone(AperiodMissile* missile, Target* target, double V_mis, double V_tar, double yaw_rel, double pitch_rel, double effectiveRadius, double tolerance, double dt, int numPoints );

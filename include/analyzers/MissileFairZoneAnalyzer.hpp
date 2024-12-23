@@ -53,4 +53,12 @@ std::vector< std::vector<double> > perpendToVectorFairSurface(    AperiodMissile
 
 
 std::vector< std::vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt);
+
+std::vector< std::vector<double> > fairTrajectoryPoints_surf(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double reGuidanceTime, double dt);
+
+std::vector< std::vector<double> > perpendToVectorFairLine(    AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius,
+                                                        double tolerance, std::vector<double>& direction, double step, double dt);
+
+
+
 #endif

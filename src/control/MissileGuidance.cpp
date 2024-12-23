@@ -3,6 +3,7 @@
 #include <math.h>
 #include <vector>
 #include "../../include/control/MissileGuidance.hpp"
+#include "../../include/aerodynamics/Atmosphere_GOST_4401_81.hpp"
 
 #define STOP_RANGE double(300)
 using namespace std;
@@ -16,9 +17,11 @@ vector<double> MissileGuidance::get_GuidanceSignal(PointMass* missile, vector<Po
     if(!updateInformation(missile, targets)){
         return {0, 0};
     }
+    double Vabs = missile -> get_Vabs();
+    double g = Atmosphere_GOST_4401_81<double>::get_g(0);
     if(r_rel > STOP_RANGE)
         last_signal = d_eta_dt();
-    return {last_signal[0] * K_guidance[0], last_signal[1] * K_guidance[1]};
+    return {last_signal[0] * K_guidance[0] * Vabs / g, last_signal[1] * K_guidance[1] * Vabs / g};
 }
 
 bool MissileGuidance::init(vector<double>& _K_guidance){
@@ -46,7 +49,19 @@ bool MissileGuidance::updateInformation(PointMass* missile, vector<PointMass*> t
     
     
     phi_hi[0] = asin( (target->get_y() - missile->get_y()) / r_rel);
-    phi_hi[1] = -atan( ( target->get_z() - missile->get_z() ) / ( target->get_x() - missile->get_x() ) );
+    /*phi_hi[0] = atan2(
+        target->get_y() - missile->get_y(),
+        sqrt(
+                (target->get_x() - missile->get_x()) * (target->get_x() - missile->get_x()) +
+                (target->get_z() - missile->get_z()) * (target->get_z() - missile->get_z())
+            )
+    );*/
+    phi_hi[1] = -atan2(target->get_z() - missile->get_z(), target->get_x() - missile->get_x());
+    if((abs(target->get_z() - missile->get_z()) < 0.001) && (target->get_x() - missile->get_x() < 0) ){
+        phi_hi[1] = M_PI;
+    }
+    //phi_hi[1] = -atan( ( target->get_z() - missile->get_z() ) / ( target->get_x() - missile->get_x() ) );
+
     
     
     vector<double> V_tar = target->get_V();

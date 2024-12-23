@@ -4,7 +4,11 @@
 #include "../../include/models/Missile.hpp"
 #include "../../include/models/AperiodMissile.hpp"
 #include "../../include/utils/MyMath.hpp"
+#include <fstream>
 #include <iostream>
+#include <iomanip>
+
+#define MIN_FLIGHT_TIME double(9)
 
 using namespace std;
 
@@ -167,7 +171,6 @@ vector<double> oneMissileSimulation(Missile* missile, Target* target, double dt)
     return {range_curr, r_rel[0], r_rel[1], r_rel[2], 1};
 }
 
-//НАДО ИЗМЕНИТЬ SET STATE В APERIOD MISSILE
 bool RK_STEP(AperiodMissile* missile, Target* target, double dt){
     vector<double> stateVector_missile = missile -> get_stateVector();
     vector<double> n_xyz_body_missile = missile -> get_n_xyz_body();
@@ -264,7 +267,9 @@ bool RK_STEP(AperiodMissile* missile, Target* target, double dt){
 
 //Возвращает вектор (r, r_x, r_y, r_z, -1/1), r - велична промаха; r_x, r_y, r_z - её проекции на оси; -1/1 - проходим ли мы по критерию конечной скорости (-1 - не проходим) 
 vector<double> oneMissileSimulation(AperiodMissile* missile, Target* target, double dt){
-    
+    //ofstream out;          
+    //string name = "trajector_" + to_string(int(1)) + "_" + to_string(int(missile->get_x())) + ".dat";  
+
     vector<double> stateVector_missile = missile -> get_stateVector(); 
     IGuidance* initialMissileGuidance = missile -> get_Guidance();
     vector<double> n_xyz_body = missile -> get_n_xyz_body();
@@ -274,29 +279,34 @@ vector<double> oneMissileSimulation(AperiodMissile* missile, Target* target, dou
 
     missile -> set_target(target);
     target -> set_pursuer(missile);
-
     double t = 0;
 
     vector<double> r_missile = missile->get_r();
     vector<double> r_target = target->get_r();
     double range_old = range(r_missile, r_target);
     double range_curr = range(r_missile, r_target);
-    
-    //cout << missile -> get_x() << ' ' << missile -> get_y() << ' ' << missile -> get_z() << ' ' << target ->get_x() << ' ' << target ->get_y()
-    //<< ' ' << target ->get_z() << '\n';
 
     while(range_curr <= range_old){
+        /*
+        //out.open(name, ios::app);
+        cout << setprecision(6) << t <<' '<< missile -> get_Vabs() << ' ' <<missile -> get_x() << ' ' << missile -> get_y() << ' ' << missile -> get_z() << ' ' << target ->get_x() << ' ' << target ->get_y()
+        << ' ' << target ->get_z() << ' ' << Theta * 180.0 / M_PI<< ' ' << Psi * 180.0 / M_PI << ' ' << phi_hi[0] * 180.0 / M_PI << ' ' << phi_hi[1]* 180.0 / M_PI << 
+        ' ' << r_rel << ' ' << range_old << ' ' << range_curr << ' ' <<  d_phi_last << ' ' << d_hi_last <<'\n';*/
+        
         range_old = range_curr;
-        /*cout << t <<' '<< missile -> get_Vabs() << ' ' <<missile -> get_x() << ' ' << missile -> get_y() << ' ' << missile -> get_z() << ' ' << target ->get_x() << ' ' << target ->get_y()
-        << ' ' << target ->get_z() << ' ' << range_old << '\n';*/
+        //out.close();*/
         //cout << t << ' ' << missile->get_d_n_xyz_body()[0] << ' ' << missile -> get_n_xyz_body()[1] <<'\n'; 
+        
         //Проверка на достаточность скорости ракеты
         if(0.5 * missile->get_Vabs() < target->get_Vabs()){
+            
+            //cout << t << ' ' << missile->get_Vabs() << ' ' << target->get_Vabs() << '\n';
+            
             missile -> set_state(stateVector_missile, n_xyz_body);
             missile -> set_target(initialMissilesTargets);
             target -> set_state(stateVector_target);
             target -> set_pursuer(initialTargetPursuers);
-            return {0, 0, 0, 0, -1};
+            return {0, 0, 0, 0, -1, 0};
         }
 
         //Интегрирование Эйлером
@@ -318,12 +328,19 @@ vector<double> oneMissileSimulation(AperiodMissile* missile, Target* target, dou
         
     }
 
+    if(t < MIN_FLIGHT_TIME){
+        missile -> set_state(stateVector_missile, n_xyz_body);
+        missile -> set_target(initialMissilesTargets);
+        target -> set_state(stateVector_target);
+        target -> set_pursuer(initialTargetPursuers);
+        return {0, 0, 0, 0, 0, -1};
+    }
+
     missile -> set_state(stateVector_missile, n_xyz_body);
     missile -> set_target(initialMissilesTargets);
-   // missile ->choose_Guidance();
     target -> set_state(stateVector_target);
     target -> set_pursuer(initialTargetPursuers);
   
     vector<double> r_rel = sub(r_target, r_missile);
-    return {range_curr, r_rel[0], r_rel[1], r_rel[2], 1};
+    return {range_curr, r_rel[0], r_rel[1], r_rel[2], 1, 1};
 }
