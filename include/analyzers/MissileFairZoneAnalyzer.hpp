@@ -3,6 +3,8 @@
 
 #include <math.h>
 #include <vector>
+#include <queue>
+#include <set>
 #include "../simulations/OneMissileSimulation.hpp"
 
 //Поиск границы зоны допустимых мест пусков по направлению относительно НЗСК, где начало - положение ракеты,
@@ -60,5 +62,6 @@ std::vector< std::vector<double> > perpendToVectorFairLine(    AperiodMissile* m
                                                         double tolerance, std::vector<double>& direction, double step, double dt);
 
 
+std::vector< std::vector<double> > crossGrid(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt);
 
 #endif

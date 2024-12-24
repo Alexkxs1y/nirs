@@ -5,6 +5,8 @@
 #include <fstream>
 #include <time.h>
 #include "omp.h"
+#include <queue>
+#include <set>
 
 #include "../../include/utils/MyMath.hpp"
 #include "../../include/analyzers/MissileFairZoneAnalyzer.hpp"
@@ -13,8 +15,47 @@
 #define NUM_OF_MNK_POINTS 100 //Число точек, используемых для аппроксимации траектории
 #define NUM_FAIR_ZONE_POINTS 120  //Число которое показывает шаг угла при построении допустимой зоны ракеты dAnngle = 2 * M_PI / NUM_FAIR_ZONE_POINTS
 #define NUM_SURFACE_POINT 24 //Число которое показываетшаг угла при построении допустимого положения ракеты в плоскости dAnngle = 2 * M_PI / NUM_SURFACE_POINT
+#define MAX_Y double(30000)
+#define MAX_X double(30000)
+#define GRID_STEP double(1000)
 
 using namespace std;
+
+bool inZone(vector<double>& flightRes, double effectiveRadius){
+    if(flightRes[0] < effectiveRadius && flightRes[4] >= 0 && flightRes[5] >= 0)
+        return true;
+    return false;
+}
+
+bool isInterested(vector<vector<int>>& zonePoints, size_t i, size_t j){
+    int summ = zonePoints[i][j] + zonePoints[i][j + 1] + zonePoints[i + 1][j] + zonePoints[i + 1][j + 1];
+    if(summ == 0 || summ == 4)
+        return false;
+    return true;
+}
+
+vector<double> checkPoint(vector<vector<int>>& zonePoints, size_t i, size_t j, double grid_step){
+    int summ = zonePoints[i][j] + zonePoints[i][j + 1] + zonePoints[i + 1][j] + zonePoints[i + 1][j + 1];
+    if(summ == 1 || summ == 2){
+        if(zonePoints[i][j])
+            return {double(i) * grid_step, double(j) * grid_step, 0};
+        if(zonePoints[i][j + 1])
+            return {double(i) * grid_step, double(j + 1) * grid_step, 3}; 
+        if(zonePoints[i + 1][j])
+            return {double(i + 1) * grid_step, double(j) * grid_step, 1};
+        
+        return {double(i + 1) * grid_step, double(j + 1) * grid_step, 2};    
+    } else {
+        if(!zonePoints[i][j])
+            return {double(i + 1) * grid_step, double(j + 1) * grid_step, 2};
+        if(!zonePoints[i][j + 1])
+            return {double(i + 1) * grid_step, double(j) * grid_step, 1}; 
+        if(!zonePoints[i + 1][j])
+            return {double(i) * grid_step, double(j + 1) * grid_step, 3};
+        
+        return {double(i) * grid_step, double(j) * grid_step, 0};
+    }
+}
 
 vector<double> directionBound(Missile* missile, Target* target, double _yaw, double _pitch, double effectiveRadius, double tolerance, double dt){
     
@@ -1191,4 +1232,152 @@ vector< vector<double> > fairTrajectoryPoints_surf(AperiodMissile* missile, Targ
         out.close();
     }
     return fairTrajectoryPoints;
+}
+
+
+
+vector<vector<double>> checkPointBound(AperiodMissile* missile, Target* target_1, Target* target_2, vector<double> _checkPoint, double effectiveRadius, double dt){
+    
+    double step = sqrt(2) * GRID_STEP;
+    vector< vector<double> > bounds;
+
+    vector<double> missile_stateVector = missile -> get_stateVector();
+    vector<double> missile_n_xyz_body = missile -> get_n_xyz_body();
+    vector<double> missile_stateVector_initial = missile_stateVector;
+    vector<double> flyghtRes_1(6);
+    vector<double> flyghtRes_2(6);
+    //vector<double> cos_xyz = { cos(_pitch) * cos(_yaw),  sin(_pitch) * cos(_yaw), sin(_yaw) };  
+    double pitch;
+
+    vector<double> left(2);
+    vector<double> right(2);
+    vector<double> med(2);
+
+
+
+    double numOfPoints = 9; ////////////////////////////
+    for(size_t i = 0; i <= int(numOfPoints); i++){
+        pitch = 0.5 * M_PI * _checkPoint[2] + double(i) * 0.5 * M_PI / numOfPoints;
+        step = GRID_STEP / cos(fmod(double(i) * 0.5 * M_PI / numOfPoints, 0.25 * M_PI));
+
+        left[0] = _checkPoint[0];
+        right[0] = left[0] + step * cos(pitch);
+        left[1] = _checkPoint[1];
+        right[1] = left[1] + step * sin(pitch);
+        for(size_t j = 0; j < 2; j++){
+                missile_stateVector[j] = right[j];
+        }
+        missile -> set_state(missile_stateVector, missile_n_xyz_body);
+        flyghtRes_1 = oneMissileSimulation(missile, target_1, dt);
+        flyghtRes_2 = oneMissileSimulation(missile, target_2, dt);
+        
+        if(inZone(flyghtRes_1, effectiveRadius) && inZone(flyghtRes_2, effectiveRadius))
+        {   
+            cout << "ЛОХ!!!\n";
+            continue;
+        }
+        while(range(left, right) > effectiveRadius){
+            for(size_t j = 0; j < 2; j++){
+                med[j] = 0.5 * (left[j] + right[j]);
+                missile_stateVector[j] = med[j];
+            }
+            if(med[1] < 0){
+                double back_step = med[1] / sin(pitch);
+                med[0] -= back_step * cos(pitch);
+                med[1] -= back_step * sin(pitch);
+                for(size_t j = 0; j < 2; j++){
+                    missile_stateVector[j] = med[j];
+                }
+            }
+            missile -> set_state(missile_stateVector, missile_n_xyz_body);
+            flyghtRes_1 = oneMissileSimulation(missile, target_1, dt);
+            flyghtRes_2 = oneMissileSimulation(missile, target_2, dt);
+            if(!(inZone(flyghtRes_1, effectiveRadius) && inZone(flyghtRes_2, effectiveRadius))){
+                right = med;
+            } else {
+                    if(abs(med[1]) < 1) break;
+                    left = med;
+            }
+        }
+        bounds.push_back(med);
+        cout << med[0] << ' ' << med[1] << '\n';
+        missile -> set_state(missile_stateVector_initial, missile_n_xyz_body);
+    }
+
+    return bounds;
+}
+
+
+
+vector< vector<double> > crossGrid(AperiodMissile* missile, Target* target_1, Target* target_2, double effectiveRadius, double tolerance, double dt) {
+    
+    vector<double> missileState = missile -> get_stateVector();
+    vector<double> missile_n_xyz_body = missile -> get_n_xyz_body();
+    vector<double> missileR = {missileState[0], missileState[1], missileState[2]};
+
+    vector< vector<double> > res;
+
+    vector<double> flyghtRes_1 = oneMissileSimulation(missile, target_1, dt);
+    vector<double> flyghtRes_2 = oneMissileSimulation(missile, target_2, dt);
+
+    //Если из текущий точки поражение совершить невозможно
+    //Функция прекращает работы и делает вывод пары {-1, {{-1,-1}}}
+    if(flyghtRes_1[0] > effectiveRadius || flyghtRes_1[4] < 0 || flyghtRes_1[5] < 0){    
+        return { {-1, 0 } };        
+    }
+
+    if(flyghtRes_2[0] > effectiveRadius || flyghtRes_2[4] < 0 || flyghtRes_2[5] < 0){    
+        return { { 0 , -1 } };        
+    }
+
+    double max_y = MAX_Y;
+    double max_x = MAX_X;
+    double grid_step = GRID_STEP;
+    int x_steps = int(max_x / grid_step);
+    int y_steps = int(max_y / grid_step);
+    int ys = y_steps + 1;
+    vector< vector<int> > zonePoints(int(x_steps + 1), vector<int>(ys));
+    vector<double> _checkPoint(3); 
+
+    for(size_t i = 0; i <= x_steps; i++){
+        for(size_t j =0; j <= y_steps; j++){
+            missileState[0] = double(i) * grid_step;
+            missileState[1] = double(j) * grid_step;
+            missile->set_state(missileState, missile_n_xyz_body);
+            flyghtRes_1 = oneMissileSimulation(missile, target_1, dt);
+            flyghtRes_2 = oneMissileSimulation(missile, target_2, dt);
+            if(inZone(flyghtRes_1, effectiveRadius) && inZone(flyghtRes_2, effectiveRadius)){
+                zonePoints[i][j] = 1;
+            } else {
+                zonePoints[i][j] = 0;
+            }
+        }
+    }
+
+    ofstream out;          
+    string name = "gridInt.dat";  
+    out.open(name, ios::app);
+    for(size_t i = 0; i < res.size(); i ++){
+            out << res[i][0] << ' ' << res[i][1] <<  '\n';
+    }
+    out.close();
+
+    for(size_t i = 0; i < x_steps; i++){
+        for(size_t j = 0; j < y_steps; j++){
+            if(isInterested(zonePoints, i, j)){
+                out.open(name, ios::app);
+                out << i * grid_step << ' ' << j * grid_step <<  '\n';
+                out << i  * grid_step << ' ' << (j + 1) * grid_step <<  '\n';
+                out << (i + 1) * grid_step << ' ' << (j + 1) * grid_step <<  '\n';
+                out << (i + 1) * grid_step << ' ' << j * grid_step <<  '\n';
+                out.close();
+                _checkPoint = checkPoint(zonePoints, i, j, grid_step);
+                vector< vector<double> > bounds = checkPointBound(missile, target_1, target_2, _checkPoint, effectiveRadius, dt);
+                for(size_t k = 0; k < bounds.size(); k++){
+                    res.push_back(bounds[k]);
+                }
+            }
+        }   
+    }
+    return res;
 }
