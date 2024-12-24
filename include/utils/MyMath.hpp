@@ -80,4 +80,6 @@ std::vector<double> fitCubicPolynomial(const std::vector< std::vector<double> >&
 std::pair< std::vector<double>, std::vector<double> > fitCubicPolynomials3D(const std::vector< std::vector<double> >& points);
 
 
+std::vector<double> findDensestPoint(const std::vector<std::vector<double>>& points, int numChecks, double radius = 1000);
+
 #endif

@@ -445,7 +445,7 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
     vector<double> missile_n_xyz_body = missile -> get_n_xyz_body();
     vector<double> missile_stateVector_initial = missile_stateVector;
     
-    vector<double> flightRes(5);
+    vector<double> flightRes(6);
     double missDistanse = 0;
     vector<double> cos_xyz = { cos(_pitch) * cos(_yaw),  sin(_pitch) * cos(_yaw), sin(_yaw) };  
     bool isStepBack = false;
@@ -482,7 +482,7 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
         missile -> set_state(missile_stateVector, missile_n_xyz_body);
         flightRes = oneMissileSimulation(missile, target, dt);
         missDistanse = flightRes[0];
-        if(flightRes[4] < 0){
+        if(flightRes[4] < 0 || flightRes[5] < 0){
             missDistanse = 2 * effectiveRadius; //Костыль при нехватке скорости.......................
         }
         if(!beforeTarget && missDistanse < effectiveRadius) break;
@@ -490,7 +490,7 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
         inAir = true;
     }
 
-    //cout << missile_stateVector[0] << ' ' << missile_stateVector[1] << ' ' << missile_stateVector[2] << '\n';
+    cout << missile_stateVector[0] << ' ' << missile_stateVector[1] << ' ' << missile_stateVector[2] << '\n';
 
     missile -> set_state(missile_stateVector_initial, missile_n_xyz_body);
 
@@ -503,7 +503,7 @@ vector< vector<double> > fairTrajectoryPoints(Missile* missile, Target* target_1
 }*/
 
 
-vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double effectiveRadius, double tolerance, double dt){
+vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double top, double bottom, double effectiveRadius, double tolerance, double dt){
     
     double step = 200000;
     vector<double> missile_stateVector = missile -> get_stateVector();
@@ -511,11 +511,41 @@ vector<double> directionBound(AperiodMissile* missile, Target* target, double _y
     vector<double> missile_stateVector_initial = missile_stateVector;
     //_pitch = - 0.5 * M_PI;
     vector<double> flightRes(6);
-    double missDistanse = 0;
     vector<double> cos_xyz = { cos(_pitch) * cos(_yaw),  sin(_pitch) * cos(_yaw), sin(_yaw) };  
     vector<double> left(3);
     vector<double> right(3);
     vector<double> med(3);
+    
+    double step_up;
+    double step_down;
+    if(top > numeric_limits<double>::max() - 1) step_up = -1;
+    if(bottom == 0) step_down = -1;
+
+    if(step_up != -1){
+        step_up = (top - missile_stateVector[1]) / cos_xyz[1];
+        if(step_up > 0){
+            for(size_t i = 0; i < 3; i++){
+                missile_stateVector[i] += step_up * cos_xyz[i];
+            }
+            missile -> set_state(missile_stateVector, missile_n_xyz_body);
+            flightRes = oneMissileSimulation(missile, target, dt);
+            if(flightRes[0] > effectiveRadius || flightRes[4] < 0 || flightRes[5] < 0) step = step_up;
+        }
+    }
+
+    if(step_down != -1){
+        step_down = (bottom - missile_stateVector[1]) / cos_xyz[1];
+        if(step_down > 0){
+            for(size_t i = 0; i < 3; i++){
+                missile_stateVector[i] += step_down * cos_xyz[i];
+            }
+            missile -> set_state(missile_stateVector, missile_n_xyz_body);
+            flightRes = oneMissileSimulation(missile, target, dt);
+            if(flightRes[0] > effectiveRadius || flightRes[4] < 0 || flightRes[5] < 0) step = step_down;
+        }
+    }
+
+
     for(size_t i = 0; i < 3; i++){
         left[i] = missile_stateVector[i];
         right[i] = left[i] + step * cos_xyz[i];
@@ -573,7 +603,7 @@ vector< vector<double> > missileFairZone(AperiodMissile* missile, Target* target
     vector<double> bound(3);
     vector< vector<double> > missileFairZone(0);
 
-    bound = directionBound(missile, target, _yaw, 0 * M_PI * 0.5, effectiveRadius, tolerance, dt);
+    bound = directionBound(missile, target, _yaw, 0 * M_PI * 0.5, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
     missileFairZone.push_back(bound);
     omp_set_num_threads(omp_get_max_threads());
     #pragma omp parallel private(_yaw, _pitch, bound)
@@ -594,14 +624,14 @@ vector< vector<double> > missileFairZone(AperiodMissile* missile, Target* target
             for(int j = 0; j < int(numPoints * 0.5); j ++){
                 _yaw = M_PI * 0.5 - 2 * double(j) * M_PI / double(numPoints);
                 _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
-                bound = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, effectiveRadius, tolerance, dt);
+                bound = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
                 #pragma critical
                     missileFairZone.push_back(bound);
             }
         }
     }
 
-    bound = directionBound(missile, target, 0, - M_PI * 0.5, effectiveRadius, tolerance, dt);
+    bound = directionBound(missile, target, 0, - M_PI * 0.5, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
     missileFairZone.push_back(bound);
     out.open(name, ios::app);
     for(size_t i = 0; i < missileFairZone.size(); i++){
@@ -642,8 +672,8 @@ vector< vector<double> > crossTargetMissileFairZone(AperiodMissile* missile, Tar
     vector<double> bound_2(3);
     vector< vector<double> > crossTargetMissileFairZone(0);
     cout << "ШАГ ПО ВРЕМЕНИ ПРИ АНАЛИЗУ: " << dt << '\n';
-    bound_1 = directionBound(missile, target_1, _yaw, M_PI * 0.5, effectiveRadius, tolerance, dt);
-    bound_2 = directionBound(missile, target_2, _yaw, M_PI * 0.5, effectiveRadius, tolerance, dt);
+    bound_1 = directionBound(missile, target_1, _yaw, M_PI * 0.5, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
+    bound_2 = directionBound(missile, target_2, _yaw, M_PI * 0.5, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
     
     if(range(missileR, bound_1) < range(missileR, bound_2)){
         crossTargetMissileFairZone.push_back(bound_1);
@@ -672,8 +702,8 @@ vector< vector<double> > crossTargetMissileFairZone(AperiodMissile* missile, Tar
             for(int j = 0; j <= int(numPoints * 0.5); j ++){
                 _yaw =  M_PI * 0.5 - 2 * double(j) * M_PI / double(numPoints);
                 _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
-                bound_1 = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, effectiveRadius, tolerance, dt);
-                bound_2 = directionBound(&missile_loc, &target2_loc, _yaw, _pitch, effectiveRadius, tolerance, dt);
+                bound_1 = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
+                bound_2 = directionBound(&missile_loc, &target2_loc, _yaw, _pitch, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
                 if(range(missileR, bound_1) < range(missileR, bound_2)){
                     #pragma omp critical
                         crossTargetMissileFairZone.push_back(bound_1);
@@ -686,8 +716,8 @@ vector< vector<double> > crossTargetMissileFairZone(AperiodMissile* missile, Tar
     }
     cout << "ВРЕМЯ НА ЗОНУ" << omp_get_wtime() - OMPtime << '\n';
 
-    bound_1 = directionBound(missile, target_1, _yaw, - M_PI * 0.5, effectiveRadius, tolerance, dt);
-    bound_2 = directionBound(missile, target_2, _yaw, - M_PI * 0.5, effectiveRadius, tolerance, dt);
+    bound_1 = directionBound(missile, target_1, _yaw, - M_PI * 0.5, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
+    bound_2 = directionBound(missile, target_2, _yaw, - M_PI * 0.5, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
     
     if(range(missileR, bound_1) < range(missileR, bound_2)){
         crossTargetMissileFairZone.push_back(bound_1);
@@ -713,6 +743,7 @@ vector< vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Tar
     int numPoints = NUM_FAIR_ZONE_POINTS;
 
     vector<double> missileState = missile -> get_stateVector();
+    vector<double> missile_n_xyz_body = missile -> get_n_xyz_body();
     vector<double> missileR = {missileState[0], missileState[1], missileState[2]};
 
     vector<double> flyghtRes_1 = oneMissileSimulation(missile, target_1, dt);
@@ -731,11 +762,14 @@ vector< vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Tar
     double _yaw = 0, _pitch = 0;
     vector<double> bound_1(3);
     vector<double> bound_2(3);
-    vector< vector<double> > crossTargetMissileFairZone((int(numPoints * 0.5) + 1));
-    
+    vector< vector<double> > crossTargetMissileFairZone(3 *int(numPoints * 0.5) - 1);
+    vector<double> lowest(3);
+    vector<double> highest(3);
+    vector<double> denPoint(3);
+
     omp_set_num_threads(omp_get_max_threads());
     double OMPtime = omp_get_wtime();
-    #pragma omp parallel private(_yaw, _pitch, bound_1, bound_2)
+    #pragma omp parallel private(_yaw, _pitch, bound_1, bound_2) 
     {   
         cout << omp_get_num_threads() << '\n';
         AperiodMissile missile_loc(*missile);
@@ -754,8 +788,8 @@ vector< vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Tar
         for(int i = 0; i <= int(numPoints * 0.5); i ++){
             _yaw =  0;
             _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
-            bound_1 = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, effectiveRadius, tolerance, dt);
-            bound_2 = directionBound(&missile_loc, &target2_loc, _yaw, _pitch, effectiveRadius, tolerance, dt);
+            bound_1 = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
+            bound_2 = directionBound(&missile_loc, &target2_loc, _yaw, _pitch, numeric_limits<double>::max(), 0, effectiveRadius, tolerance, dt);
             if(range(missileR, bound_1) < range(missileR, bound_2)){
                 #pragma omp critical
                     crossTargetMissileFairZone[i] = bound_1;
@@ -764,11 +798,70 @@ vector< vector<double> > crossTargetMissileFairSurf(AperiodMissile* missile, Tar
                     crossTargetMissileFairZone[i] = bound_2;
             }
         }
+
+        #pragma omp master
+        {   
+            denPoint = findDensestPoint(crossTargetMissileFairZone, int(numPoints * 0.5));
+            cout << "ПЛОТНАЯ ТОЧКА: " << denPoint[1] << '\n';
+            highest = crossTargetMissileFairZone[0];
+            lowest = crossTargetMissileFairZone[int(numPoints * 0.5)];
+            for(size_t i = 0; i < 3; i ++){
+                missileState[i] = highest[i];
+            }
+            if(missileState[1] - 100 > missileR[1])
+                missileState[1] -= 100;
+        }
+        #pragma omp barrier
+
+        missile_loc.set_state(missileState, missile_n_xyz_body);
+
+        #pragma omp for schedule(dynamic)
+        for(int i = 1; i < int(numPoints * 0.5); i ++){
+            _yaw =  0;
+            _pitch = M_PI * 0.5 - 2 * double(i) * M_PI / double(numPoints);
+            bound_1 = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, numeric_limits<double>::max(), denPoint[1], effectiveRadius, tolerance, dt);
+            bound_2 = directionBound(&missile_loc, &target2_loc, _yaw, _pitch, numeric_limits<double>::max(), denPoint[1], effectiveRadius, tolerance, dt);
+            if(range(missileR, bound_1) < range(missileR, bound_2)){
+                #pragma omp critical
+                    crossTargetMissileFairZone[i + int(numPoints * 0.5)] = bound_1;
+            } else {
+                #pragma omp critical
+                    crossTargetMissileFairZone[i + int(numPoints * 0.5)] = bound_2;
+            }
+        }
+
+        #pragma omp master
+        {
+            for(size_t i = 0; i < 3; i ++){
+                missileState[i] = lowest[i];
+            }
+            if(missileState[1] + 100 < missileR[1])
+                missileState[1] += 100;
+        }
+        #pragma omp barrier
+
+        missile_loc.set_state(missileState, missile_n_xyz_body);
+
+        #pragma omp for schedule(dynamic)
+        for(int i = 1; i < int(numPoints * 0.5); i ++){
+            _yaw =  0;
+            _pitch = - M_PI * 0.5 + 2 * double(i) * M_PI / double(numPoints);
+            bound_1 = directionBound(&missile_loc, &target1_loc, _yaw, _pitch, denPoint[1], 0, effectiveRadius, tolerance, dt);
+            bound_2 = directionBound(&missile_loc, &target2_loc, _yaw, _pitch, denPoint[1], 0, effectiveRadius, tolerance, dt);
+            if(range(missileR, bound_1) < range(missileR, bound_2)){
+                #pragma omp critical
+                    crossTargetMissileFairZone[i + 2 * int(numPoints * 0.5) - 1] = bound_1;
+            } else {
+                #pragma omp critical
+                    crossTargetMissileFairZone[i + 2 * int(numPoints * 0.5) - 1] = bound_2;
+            }
+        }
+
     }
     cout << "ВРЕМЯ НА ЗОНУ" << omp_get_wtime() - OMPtime << '\n';
 
     out.open(name, ios::app);
-    for(size_t i = 0; i <= int(numPoints * 0.5); i ++){
+    for(size_t i = 0; i < 3 *( int(numPoints * 0.5) - 1); i ++){
             out << crossTargetMissileFairZone[i][0] << ' ' << crossTargetMissileFairZone[i][1] << ' ' << crossTargetMissileFairZone[i][2] << ' ' << '\n';
     }
     out.close();

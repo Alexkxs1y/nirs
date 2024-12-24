@@ -343,3 +343,27 @@ pair<vector<double>, vector<double>> fitCubicPolynomials3D(const vector<vector<d
 
     return {yCoeffs, zCoeffs};
 }
+
+
+vector<double> findDensestPoint(const vector<vector<double>>& points, int numChecks, double radius) {
+    int maxCount = 0;
+    vector<double> densestPoint;
+
+    for (size_t i = 0; i < numChecks; ++i) {
+        int count = 0;
+
+        // Count neighbors within the radius
+        for (size_t j = 0; j < numChecks; ++j) {
+            if (i != j && range(points[i], points[j]) <= radius) {
+                ++count;
+            }
+        }
+
+        // Update the densest point if this point has more neighbors
+        if (count > maxCount) {
+            maxCount = count;
+            densestPoint = points[i];
+        }
+    }
+    return densestPoint;
+}

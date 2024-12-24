@@ -31,7 +31,7 @@ std::vector< std::vector<double> > perpendToVectorFairSurface(    Missile* missi
 /////////////////////////////////////ПЕРЕГРУЗКА ДЛЯ APERIOD MISSILE///////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double effectiveRadius, double tolerance, double dt);
+std::vector<double> directionBound(AperiodMissile* missile, Target* target, double _yaw, double _pitch, double top, double bottom, double effectiveRadius, double tolerance, double dt);
 
 //Построитель зоны допустимых мест пусков ракет. 
 //Это значит допустимых для поражения начальных положений ракеты относительно цели в текущий момент времени для текущей конфигурации цель-ракета,
