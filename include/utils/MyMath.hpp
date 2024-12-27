@@ -25,6 +25,8 @@ std::vector<double> crossProduct(const std::vector<double>& a, const std::vector
 
 double dotProduct(const std::vector<double>& a, const std::vector<double>& b);
 
+double angleBetweenVectors(double ax, double ay, double bx, double by);
+
 //Поворот вектора a относительно вектора b на угол Theta 
 std::vector<double> rotate(const std::vector<double>& a, const std::vector<double>& b, double Theta);
 

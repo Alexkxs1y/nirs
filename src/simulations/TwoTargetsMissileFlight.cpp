@@ -45,7 +45,7 @@ vector<double> twoTargetsOneMissileFlight(Missile& missile, std::vector<Target> 
             out.open(name, ios::app);
             out << setprecision(10) << t << ' ' << missile.get_x() << ' ' << missile.get_y() << ' ' << missile.get_z() << ' ' << targets[0].get_x() << ' ' 
             << targets[0].get_y() << ' '  << targets[0].get_z() << ' '  << targets[1].get_x() << ' '  << targets[1].get_y() << ' '
-            << targets[1].get_z() << '\n';  
+            << targets[1].get_z() <<  '\n';  
             out.close(); 
             i++;
         }

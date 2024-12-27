@@ -96,6 +96,36 @@ double dotProduct(const vector<double>& a, const vector<double>& b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
+double magnitude(double x, double y) {
+    return std::sqrt(x * x + y * y);
+}
+
+double determinant(double ax, double ay, double bx, double by) {
+    return ax * by - ay * bx;
+}
+
+double angleBetweenVectors(double ax, double ay, double bx, double by) {
+    // Calculate the dot product
+    double dot = dotProduct({ax, ay}, {bx, by});
+    // Calculate the magnitudes
+    double mag_a = magnitude(ax, ay);
+    double mag_b = magnitude(bx, by);
+    // Calculate the cosine of the angle
+    double cos_theta = dot / (mag_a * mag_b);
+    // Clamp to avoid numerical issues
+    cos_theta = std::max(-1.0, std::min(1.0, cos_theta));
+    // Calculate the angle in radians
+    double theta = std::acos(cos_theta);
+    // Calculate the determinant to determine the direction
+    double det = determinant(ax, ay, bx, by);
+    // Adjust the angle based on the determinant
+    if (det < 0) {
+        theta = 2 * M_PI - theta; // Adjust to counterclockwise
+    }
+    // Convert to degrees
+    return theta;
+}
+
 vector<double> rotate(const vector<double>& a, const vector<double>& b, double Theta){
     vector<double> res(a.size());
     double a_Dot_b = dotProduct(a, b);
